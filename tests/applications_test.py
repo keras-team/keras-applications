@@ -44,44 +44,16 @@ NASNET_LIST = [(nasnet.NASNetMobile, 1056),
                (nasnet.NASNetLarge, 4032)]
 
 
-def _get_output_shape(model_fn):
-    if backend.backend() == 'cntk':
-        # Create model in a subprocess so that
-        # the memory consumed by InceptionResNetV2 will be
-        # released back to the system after this test
-        # (to deal with OOM error on CNTK backend).
-        # TODO: remove the use of multiprocessing from these tests
-        # once a memory clearing mechanism
-        # is implemented in the CNTK backend.
-        def target(queue):
-            model = model_fn()
-            queue.put(model.output_shape)
-        queue = Queue()
-        p = Process(target=target, args=(queue,))
-        p.start()
-        p.join()
-        # The error in a subprocess won't propagate
-        # to the main process, so we check if the model
-        # is successfully created by checking if the output shape
-        # has been put into the queue
-        assert not queue.empty(), 'Model creation failed.'
-        return queue.get_nowait()
-    else:
-        model = model_fn()
-        return model.output_shape
-
-
 @keras_test
 def _test_application_basic(app, last_dim=1000):
-    output_shape = _get_output_shape(lambda: app(weights=None))
-    assert output_shape == (None, last_dim)
+    model = app(weights=None)
+    assert model.output_shape == (None, last_dim)
 
 
 @keras_test
 def _test_application_notop(app, last_dim):
-    output_shape = _get_output_shape(
-        lambda: app(weights=None, include_top=False))
-    assert output_shape == (None, None, None, last_dim)
+    model = app(weights=None, include_top=False)
+    assert model.output_shape == (None, None, None, last_dim)
 
 
 @keras_test
@@ -90,26 +62,23 @@ def _test_application_variable_input_channels(app, last_dim):
         input_shape = (1, None, None)
     else:
         input_shape = (None, None, 1)
-    output_shape = _get_output_shape(
-        lambda: app(weights=None, include_top=False, input_shape=input_shape))
-    assert output_shape == (None, None, None, last_dim)
+    model = app(weights=None, include_top=False, input_shape=input_shape)
+    assert model.output_shape == (None, None, None, last_dim)
 
     if backend.image_data_format() == 'channels_first':
         input_shape = (4, None, None)
     else:
         input_shape = (None, None, 4)
-    output_shape = _get_output_shape(
-        lambda: app(weights=None, include_top=False, input_shape=input_shape))
-    assert output_shape == (None, None, None, last_dim)
+    model = app(weights=None, include_top=False, input_shape=input_shape)
+    assert model.output_shape == (None, None, None, last_dim)
 
 
 @keras_test
 def _test_app_pooling(app, last_dim):
-    output_shape = _get_output_shape(
-        lambda: app(weights=None,
-                    include_top=False,
-                    pooling=random.choice(['avg', 'max'])))
-    assert output_shape == (None, last_dim)
+    model = app(weights=None,
+                include_top=False,
+                pooling=random.choice(['avg', 'max']))
+    assert model.output_shape == (None, last_dim)
 
 
 def test_resnet50():
