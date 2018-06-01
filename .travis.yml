@@ -1,0 +1,96 @@
+sudo: required
+dist: trusty
+language: python
+matrix:
+    include:
+        - python: 2.7
+          env: KERAS_BACKEND=tensorflow TEST_MODE=PEP8
+        - python: 2.7
+          env: KERAS_BACKEND=tensorflow TEST_MODE=INTEGRATION_TESTS
+        - python: 3.6
+          env: KERAS_BACKEND=tensorflow TEST_MODE=DOC
+        - python: 2.7
+          env: KERAS_BACKEND=tensorflow
+        - python: 3.6
+          env: KERAS_BACKEND=tensorflow
+        - python: 2.7
+          env: KERAS_BACKEND=theano THEANO_FLAGS=optimizer=fast_compile
+        - python: 3.6
+          env: KERAS_BACKEND=theano THEANO_FLAGS=optimizer=fast_compile
+        - python: 2.7
+          env: KERAS_BACKEND=cntk PYTHONWARNINGS=ignore
+        - python: 3.6
+          env: KERAS_BACKEND=cntk PYTHONWARNINGS=ignore
+install:
+  # code below is taken from http://conda.pydata.org/docs/travis.html
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pytest pandas
+  - source activate test-environment
+  - pip install --only-binary=numpy,scipy numpy nose scipy matplotlib h5py theano
+  - conda install mkl mkl-service
+
+  # set library path
+  - export LD_LIBRARY_PATH=$HOME/miniconda/envs/test-environment/lib/:$LD_LIBRARY_PATH
+
+  # install PIL
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      conda install pil;
+    elif [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
+      conda install Pillow;
+    fi
+
+  - pip install -e .[tests]
+
+  # install TensorFlow (CPU version).
+  - pip install tensorflow==1.7
+  
+  # install cntk
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3.1-cp27-cp27mu-linux_x86_64.whl;
+    elif [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
+      pip install https://cntk.ai/PythonWheel/CPU-Only/cntk-2.3.1-cp36-cp36m-linux_x86_64.whl;
+    fi
+
+  # install pydot for visualization tests
+  - conda install pydot graphviz
+
+  #install open mpi
+  - rm -rf ~/mpi
+  - mkdir ~/mpi
+  - pushd ~/mpi
+  - wget http://cntk.ai/PythonWheel/ForKeras/depends/openmpi_1.10-3.zip
+  - unzip ./openmpi_1.10-3.zip
+  - sudo dpkg -i openmpi_1.10-3.deb
+  - popd
+
+# command to run tests
+script:
+  - export MKL_THREADING_LAYER="GNU"
+  # run keras backend init to initialize backend config
+  - python -c "import keras.backend"
+  # create models directory to avoid concurrent directory creation at runtime
+  - mkdir ~/.keras/models
+  # set up keras backend
+  - sed -i -e 's/"backend":[[:space:]]*"[^"]*/"backend":\ "'$KERAS_BACKEND'/g' ~/.keras/keras.json;
+  - echo -e "Running tests with the following config:\n$(cat ~/.keras/keras.json)"
+  - if [[ "$TEST_MODE" == "INTEGRATION_TESTS" ]]; then
+      PYTHONPATH=$PWD:$PYTHONPATH py.test tests/integration_tests;
+    elif [[ "$TEST_MODE" == "PEP8" ]]; then
+      PYTHONPATH=$PWD:$PYTHONPATH py.test --pep8 -m pep8 -n0;
+    else
+      PYTHONPATH=$PWD:$PYTHONPATH py.test tests/ --ignore=tests/integration_tests --cov-config .coveragerc --cov=keras_applications tests/;
+    fi
