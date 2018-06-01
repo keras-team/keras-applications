@@ -22,7 +22,7 @@ and is distributed under the MIT license.
 
 setup(name='Keras_Applications',
       version='1.0.0',
-      description='Easy-to-use pre-trained deep learning models',
+      description='Reference implementations of popular deep learning models',
       long_description=long_description,
       author='Keras Team',
       url='https://github.com/keras-team/keras-applications',
