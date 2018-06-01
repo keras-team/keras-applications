@@ -723,3 +723,15 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             axis=channel_dim,
             name='reduction_concat_%s' % block_id)
         return x, ip
+
+
+def preprocess_input(x):
+    """Preprocesses a numpy array encoding a batch of images.
+
+    # Arguments
+        x: a 4D numpy array consists of RGB values within [0, 255].
+
+    # Returns
+        Preprocessed array.
+    """
+    return imagenet_utils.preprocess_input(x, mode='tf')
