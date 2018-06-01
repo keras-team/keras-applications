@@ -21,13 +21,13 @@ and is distributed under the MIT license.
 '''
 
 setup(name='Keras_Applications',
-      version='1.0.0',
+      version='1.0.1',
       description='Reference implementations of popular deep learning models',
       long_description=long_description,
       author='Keras Team',
       url='https://github.com/keras-team/keras-applications',
       download_url='https://github.com/keras-team/'
-                   'keras-applications/tarball/1.0.0',
+                   'keras-applications/tarball/1.0.1',
       license='MIT',
       install_requires=['keras>=2.1.6',
                         'numpy>=1.9.1',
