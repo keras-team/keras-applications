@@ -130,6 +130,8 @@ def test_vgg():
     _test_app_pooling(app, last_dim)
 
 
+@pytest.mark.skipif((backend.backend() != 'tensorflow'),
+                    reason='Xception supported only on TensorFlow')
 def test_xception():
     app = xception.Xception
     last_dim = 2048
