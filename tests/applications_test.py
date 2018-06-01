@@ -40,7 +40,11 @@ NASNET_LIST = [(nasnet.NASNetMobile, 1056),
 
 @keras_test
 def _test_application_basic(app, last_dim=1000, module=None):
-    model = app(weights='imagenet')
+    if module is not None:
+        weights = 'imagenet'
+    else:
+        weights = None
+    model = app(weights=weights)
     assert model.output_shape == (None, last_dim)
     if module is None:
         return
