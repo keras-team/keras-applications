@@ -176,9 +176,9 @@ def VGG16(include_top=True,
                       padding='same',
                       name='block5_conv3')(x)
 
-    if not include_top  and pooling == 'no':
+    if not include_top and pooling == 'no':
         pass
-    else :
+    else:
         x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
     if include_top:
