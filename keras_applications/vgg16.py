@@ -174,10 +174,10 @@ def VGG16(include_top=True,
                       activation='relu',
                       padding='same',
                       name='block5_conv3')(x)
-    x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
     if include_top:
         # Classification block
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
         x = layers.Flatten(name='flatten')(x)
         x = layers.Dense(4096, activation='relu', name='fc1')(x)
         x = layers.Dense(4096, activation='relu', name='fc2')(x)
