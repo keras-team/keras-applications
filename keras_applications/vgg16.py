@@ -74,6 +74,7 @@ def VGG16(include_top=True,
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
+            - `no` means  Block5 MaxPolling2D will not be applied.
         classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
@@ -174,7 +175,11 @@ def VGG16(include_top=True,
                       activation='relu',
                       padding='same',
                       name='block5_conv3')(x)
-    x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
+
+    if include_top == False and pooling == 'no':
+        pass
+    else :
+        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
     if include_top:
         # Classification block
