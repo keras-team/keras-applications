@@ -9,10 +9,16 @@ matrix:
           env: KERAS_BACKEND=tensorflow TEST_MODE=INTEGRATION_TESTS
         - python: 2.7
           env: KERAS_BACKEND=tensorflow
+        - python: 2.7
+          env: KERAS_BACKEND=tensorflow KERAS_HEAD=true
         - python: 3.6
           env: KERAS_BACKEND=tensorflow
+        - python: 2.7
+          env: KERAS_BACKEND=theano KERAS_HEAD=true THEANO_FLAGS=optimizer=fast_compile
         - python: 3.6
           env: KERAS_BACKEND=theano THEANO_FLAGS=optimizer=fast_compile
+        - python: 2.7
+          env: KERAS_BACKEND=cntk KERAS_HEAD=true PYTHONWARNINGS=ignore
         - python: 3.6
           env: KERAS_BACKEND=cntk PYTHONWARNINGS=ignore
 install:
@@ -47,6 +53,9 @@ install:
       conda install Pillow;
     fi
 
+  - if [[ $KERAS_HEAD == "true" ]]; then
+      pip install --no-deps git+https://github.com/keras-team/keras.git;
+    fi
   - pip install -e .[tests]
 
   # install TensorFlow (CPU version).
