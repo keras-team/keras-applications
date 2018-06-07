@@ -18,3 +18,62 @@ from keras import applications
 
 Keras Applications is compatible with Python 2.7-3.6
 and is distributed under the MIT license.
+
+## Performances
+
+- The top-k errors were obtained using by Keras Applications with **TensorFlow backend** on **ImageNet validation set** and may slightly differ from the original ones. The crop size is 224x224 for all but 331x331 for NASNetLarge, 299x299 for InceptionV3, InceptionResNetV2, Xception.
+  * Top-1: single center crop, top-1 error
+  * Top-5: single center crop, top-5 error
+  * 10-5: ten crops (1 center + 4 corners and those mirrored ones), top-5 error
+  * Size: rounded the number of parameters when `include_top=True`
+  * Stem: rounded the number of parameters when `include_top=False`
+
+|                                                                | Top-1       | Top-5       | 10-5        | Size   | Stem   | References                                  |
+|----------------------------------------------------------------|-------------|-------------|-------------|--------|--------|---------------------------------------------|
+| [VGG16](keras_applications/vgg16.py)                           | 28.732      | 9.950       | 8.834       | 138.4M | 14.7M  | [[paper]](https://arxiv.org/abs/1409.1556) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/vgg.py) |
+| [VGG19](keras_applications/vgg19.py)                           | 28.744      | 10.012      | 8.774       | 143.7M | 20.0M  | [[paper]](https://arxiv.org/abs/1409.1556) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/vgg.py) |
+| [ResNet50](keras_applications/resnet50.py)                     | 25.296      | 7.980       | 6.852       | 25.6M  | 23.6M  | [[paper]](https://arxiv.org/abs/1512.03385) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/resnet_v1.py) |
+| [InceptionV3](keras_applications/inception_v3.py)              | 22.102      | 6.280       | 5.038       | 23.9M  | 21.8M  | [[paper]](https://arxiv.org/abs/1512.00567) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/inception_v3.py) |
+| [InceptionResNetV2](keras_applications/inception_resnet_v2.py) | 19.744      | 4.748       | 3.962       | 55.9M  | 54.3M  | [[paper]](https://arxiv.org/abs/1602.07261) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/inception_resnet_v2.py) |
+| [Xception](keras_applications/xception.py)                     | 20.994      | 5.548       | 4.738       | 22.9M  | 20.9M  | [[paper]](https://arxiv.org/abs/1610.02357) |
+| [MobileNet(alpha=0.25)](keras_applications/mobilenet.py)       | 60.180      | 35.388      | 30.442      | 0.5M   | 0.2M   | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet(alpha=0.50)](keras_applications/mobilenet.py)       | 43.144      | 19.986      | 16.416      | 1.3M   | 0.8M   | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet(alpha=0.75)](keras_applications/mobilenet.py)       | 38.404      | 16.752      | 13.586      | 2.6M   | 1.8M   | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNet(alpha=1.0)](keras_applications/mobilenet.py)        | 34.180      | 13.858      | 10.798      | 4.3M   | 3.2M   | [[paper]](https://arxiv.org/abs/1704.04861) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.py) |
+| [MobileNetV2(alpha=0.35)](keras_applications/mobilenet_v2.py)  | 39.914      | 17.568      | 15.422      | 1.7M   | 0.4M   | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNetV2(alpha=0.50)](keras_applications/mobilenet_v2.py)  | 34.806      | 13.938      | 11.976      | 2.0M   | 0.7M   | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNetV2(alpha=0.75)](keras_applications/mobilenet_v2.py)  | 30.468      | 10.824      | 9.188       | 2.7M   | 1.4M   | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNetV2(alpha=1.0)](keras_applications/mobilenet_v2.py)   | 28.664      | 9.858       | 8.322       | 3.5M   | 2.3M   | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNetV2(alpha=1.3)](keras_applications/mobilenet_v2.py)   | 25.320      | 7.878       | 6.728       | 5.4M   | 3.8M   | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [MobileNetV2(alpha=1.4)](keras_applications/mobilenet_v2.py)   | 24.770      | 7.578       | 6.518       | 6.2M   | 4.4M   | [[paper]](https://arxiv.org/abs/1801.04381) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet_v2.py) |
+| [DenseNet121](keras_applications/densenet.py)                  | 25.480      | 8.022       | 6.842       | 8.1M   | 7.0M   | [[paper]](https://arxiv.org/abs/1608.06993) [[torch]](https://github.com/liuzhuang13/DenseNet/blob/master/models/densenet.lua) |
+| [DenseNet169](keras_applications/densenet.py)                  | 23.926      | 6.892       | 6.140       | 14.3M  | 12.6M  | [[paper]](https://arxiv.org/abs/1608.06993) [[torch]](https://github.com/liuzhuang13/DenseNet/blob/master/models/densenet.lua) |
+| [DenseNet201](keras_applications/densenet.py)                  | 22.936      | 6.542       | 5.724       | 20.2M  | 18.3M  | [[paper]](https://arxiv.org/abs/1608.06993) [[torch]](https://github.com/liuzhuang13/DenseNet/blob/master/models/densenet.lua) |
+| [NASNetLarge](keras_applications/nasnet.py)                    | 17.502      | 3.996       | 3.412       | 93.5M  | 84.9M  | [[paper]](https://arxiv.org/abs/1707.07012) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/nasnet/nasnet.py) |
+| [NASNetMobile](keras_applications/nasnet.py)                   | 25.634      | 8.146       | 6.758       | 7.7M   | 4.3M   | [[paper]](https://arxiv.org/abs/1707.07012) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/nasnet/nasnet.py) |
+
+
+## Reference implementations on community
+
+### Object detection and segmentation
+
+- [SSD](https://github.com/rykov8/ssd_keras) by @rykov8 [[paper]](https://arxiv.org/abs/1512.02325)
+- [YOLOv2](https://github.com/allanzelener/YAD2K) by @allanzelener [[paper]](https://arxiv.org/abs/1612.08242)
+- [YOLOv3](https://github.com/qqwweee/keras-yolo3) by @qqwweee [[paper]](https://pjreddie.com/media/files/papers/YOLOv3.pdf)
+- [Mask RCNN](https://github.com/matterport/Mask_RCNN) by @matterport [[paper]](https://arxiv.org/abs/1703.06870)
+- [U-Net](https://github.com/zhixuhao/unet) by @zhixuhao [[paper]](https://arxiv.org/abs/1505.04597)
+- [RetinaNet](https://github.com/fizyr/keras-retinanet) by @fizyr [[paper]](https://arxiv.org/abs/1708.02002)
+
+### Sequence learning
+
+- [Seq2Seq](https://github.com/farizrahman4u/seq2seq) by @farizrahman4u
+- [WaveNet](https://github.com/basveeling/wavenet) by @basveeling [[paper]](https://arxiv.org/abs/1609.03499)
+
+### Reinforcement learning
+
+- [keras-rl](https://github.com/keras-rl/keras-rl) by @keras-rl
+- [RocAlphaGo](https://github.com/Rochester-NRT/RocAlphaGo) by @Rochester-NRT [[paper]](https://doi.org/10.1038/nature16961)
+
+### Generative adversarial networks
+
+- [Keras-GAN](https://github.com/eriklindernoren/Keras-GAN) by @eriklindernoren
