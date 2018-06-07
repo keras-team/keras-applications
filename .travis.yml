@@ -71,6 +71,12 @@ install:
   # install pydot for visualization tests
   - conda install pydot graphviz
 
+  # detect one of markdown files is changed or not
+  - export DOC_ONLY_CHANGED=False;
+  - if [ $(git diff --name-only HEAD~1 | wc -l) == "1" ] && [[ "$(git diff --name-only HEAD~1)" == *"md" ]]; then
+      export DOC_ONLY_CHANGED=True;
+    fi
+
   #install open mpi
   - rm -rf ~/mpi
   - mkdir ~/mpi
@@ -90,10 +96,12 @@ script:
   # set up keras backend
   - sed -i -e 's/"backend":[[:space:]]*"[^"]*/"backend":\ "'$KERAS_BACKEND'/g' ~/.keras/keras.json;
   - echo -e "Running tests with the following config:\n$(cat ~/.keras/keras.json)"
-  - if [[ "$TEST_MODE" == "INTEGRATION_TESTS" ]]; then
-      PYTHONPATH=$PWD:$PYTHONPATH py.test tests/integration_tests.py;
-    elif [[ "$TEST_MODE" == "PEP8" ]]; then
-      PYTHONPATH=$PWD:$PYTHONPATH py.test --pep8 -m pep8 -n0;
-    else
-      PYTHONPATH=$PWD:$PYTHONPATH py.test tests/ --ignore=tests/integration_tests --cov-config .coveragerc --cov=keras_applications tests/;
+  - if [[ "$DOC_ONLY_CHANGED" == "False" ]]; then
+      if [[ "$TEST_MODE" == "INTEGRATION_TESTS" ]]; then
+        PYTHONPATH=$PWD:$PYTHONPATH py.test tests/integration_tests.py;
+      elif [[ "$TEST_MODE" == "PEP8" ]]; then
+        PYTHONPATH=$PWD:$PYTHONPATH py.test --pep8 -m pep8 -n0;
+      else
+        PYTHONPATH=$PWD:$PYTHONPATH py.test tests/ --ignore=tests/integration_tests --cov-config .coveragerc --cov=keras_applications tests/;
+      fi;
     fi
