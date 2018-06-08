@@ -160,8 +160,6 @@ def test_vgg():
     _test_app_pooling(app, last_dim)
 
 
-@pytest.mark.skipif((backend.backend() == 'theano'),
-                    reason='not supported on Theano for Keras < 2.2.0')
 def test_xception():
     app = xception.Xception
     module = xception
