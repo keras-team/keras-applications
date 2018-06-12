@@ -12,6 +12,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import warnings
 
 from . import get_keras_submodule
 
@@ -247,6 +248,9 @@ def ResNet50(include_top=True,
             x = layers.GlobalAveragePooling2D()(x)
         elif pooling == 'max':
             x = layers.GlobalMaxPooling2D()(x)
+        else:
+            warnings.warn('The output shape of `ResNet50(include_top=False)` '
+                          'has been changed since Keras 2.2.0.')
 
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
