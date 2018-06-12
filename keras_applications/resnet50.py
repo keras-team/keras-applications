@@ -249,9 +249,8 @@ def ResNet50(include_top=True,
         elif pooling == 'max':
             x = layers.GlobalMaxPooling2D()(x)
         else:
-            warnings.warn('You need to be careful about a size of the output. '
-                          'The bottleneck has been recently changed from '
-                          'the `avg_pool` to the block `5c`. ')
+            warnings.warn('The output shape of `ResNet50(include_top=False)` '
+                          'has been changed since Keras 2.2.0.')
 
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
