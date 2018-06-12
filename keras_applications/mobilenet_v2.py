@@ -306,8 +306,8 @@ def MobileNetV2(input_shape=None,
 
         if alpha not in [0.35, 0.50, 0.75, 1.0, 1.3, 1.4]:
             raise ValueError('If imagenet weights are being loaded, '
-                             'alpha can be one of'
-                             '`0.25`, `0.50`, `0.75` or `1.0` only.')
+                             'alpha can be one of `0.35`, `0.50`, `0.75`, '
+                             '`1.0`, `1.3` or `1.4` only.')
 
         if rows != cols or rows not in [96, 128, 160, 192, 224]:
             if rows is None:
