@@ -19,9 +19,10 @@ from keras import applications
 Keras Applications is compatible with Python 2.7-3.6
 and is distributed under the MIT license.
 
-## Performances
+## Performance
 
-- The top-k errors were obtained using by Keras Applications with **TensorFlow backend** on **ImageNet validation set** and may slightly differ from the original ones. The crop size is 224x224 for all but 331x331 for NASNetLarge, 299x299 for InceptionV3, InceptionResNetV2, Xception.
+- The top-k errors were obtained using Keras Applications with the **TensorFlow backend** on the **2012 ILSVRC ImageNet validation set** and may slightly differ from the original ones.
+The input size used was 224x224 for all models except NASNetLarge (331x331), InceptionV3 (299x299), InceptionResNetV2 (299x299), and Xception (299x299).
   * Top-1: single center crop, top-1 error
   * Top-5: single center crop, top-5 error
   * 10-5: ten crops (1 center + 4 corners and those mirrored ones), top-5 error
@@ -53,7 +54,7 @@ and is distributed under the MIT license.
 | [NASNetMobile](keras_applications/nasnet.py)                   | 25.634      | 8.146       | 6.758       | 7.7M   | 4.3M   | [[paper]](https://arxiv.org/abs/1707.07012) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/nasnet/nasnet.py) |
 
 
-## Reference implementations on community
+## Reference implementations from the community
 
 ### Object detection and segmentation
 
