@@ -105,7 +105,7 @@ def Xception(include_top=True,
                          'or the path to the weights file to be loaded.')
 
     if weights == 'imagenet' and include_top and classes != 1000:
-        raise ValueError('If using `weights` as imagenet with `include_top`'
+        raise ValueError('If using `weights` as `imagenet` with `include_top`'
                          ' as true, `classes` should be 1000')
 
     if backend.image_data_format() != 'channels_last':
@@ -301,7 +301,7 @@ def Xception(include_top=True,
     # Create model.
     model = models.Model(inputs, x, name='xception')
 
-    # load weights
+    # Load weights
     if weights == 'imagenet':
         if include_top:
             weights_path = keras_utils.get_file(
