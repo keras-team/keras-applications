@@ -148,8 +148,8 @@ def MobileNetV2(input_shape=None,
     To load a MobileNetV2 model via `load_model`, import the custom
     objects `relu6` and pass them to the `custom_objects` parameter.
     E.g.
-    model = load_model('mobilenet.h5', custom_objects={
-                       'relu6': mobilenet.relu6})
+    model = load_model('mobilenet_v2.h5', custom_objects={
+                       'relu6': mobilenet_v2.relu6})
 
     # Arguments
         input_shape: optional shape tuple, to be specified if you would
