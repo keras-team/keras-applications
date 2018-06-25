@@ -253,7 +253,7 @@ def NASNet(input_shape=None,
 
     model = models.Model(inputs, x, name='NASNet')
 
-    # Load weights
+    # Load weights.
     if weights == 'imagenet':
         if default_size == 224:  # mobile version
             if include_top:

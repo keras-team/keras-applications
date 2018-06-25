@@ -299,7 +299,7 @@ def MobileNet(input_shape=None,
     # Create model.
     model = models.Model(inputs, x, name='mobilenet_%0.2f_%s' % (alpha, rows))
 
-    # Load weights
+    # Load weights.
     if weights == 'imagenet':
         if backend.image_data_format() == 'channels_first':
             raise ValueError('Weights for "channels_first" format '

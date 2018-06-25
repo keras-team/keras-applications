@@ -301,7 +301,7 @@ def Xception(include_top=True,
     # Create model.
     model = models.Model(inputs, x, name='xception')
 
-    # Load weights
+    # Load weights.
     if weights == 'imagenet':
         if include_top:
             weights_path = keras_utils.get_file(

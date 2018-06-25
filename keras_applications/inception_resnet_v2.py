@@ -333,16 +333,16 @@ def InceptionResNetV2(include_top=True,
             x = layers.GlobalMaxPooling2D()(x)
 
     # Ensure that the model takes into account
-    # any potential predecessors of `input_tensor`
+    # any potential predecessors of `input_tensor`.
     if input_tensor is not None:
         inputs = engine.get_source_inputs(input_tensor)
     else:
         inputs = img_input
 
-    # Create model
+    # Create model.
     model = models.Model(inputs, x, name='inception_resnet_v2')
 
-    # Load weights
+    # Load weights.
     if weights == 'imagenet':
         if include_top:
             fname = 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels.h5'

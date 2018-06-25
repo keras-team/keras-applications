@@ -372,7 +372,7 @@ def InceptionV3(include_top=True,
     # Create model.
     model = models.Model(inputs, x, name='inception_v3')
 
-    # Load weights
+    # Load weights.
     if weights == 'imagenet':
         if include_top:
             weights_path = keras_utils.get_file(
