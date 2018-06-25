@@ -167,7 +167,7 @@ def MobileNet(input_shape=None,
                          'or the path to the weights file to be loaded.')
 
     if weights == 'imagenet' and include_top and classes != 1000:
-        raise ValueError('If using `weights` as `imagenet` with `include_top` '
+        raise ValueError('If using `weights` as \'imagenet\' with `include_top` '
                          'as true, `classes` should be 1000')
 
     # Determine proper input shape and default size.
