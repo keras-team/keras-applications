@@ -141,7 +141,7 @@ def NASNet(input_shape=None,
                          'or the path to the weights file to be loaded.')
 
     if weights == 'imagenet' and include_top and classes != 1000:
-        raise ValueError('If using `weights` as ImageNet with `include_top` '
+        raise ValueError('If using `weights` as `"imagenet"` with `include_top` '
                          'as true, `classes` should be 1000')
 
     if (isinstance(input_shape, tuple) and
@@ -253,7 +253,7 @@ def NASNet(input_shape=None,
 
     model = models.Model(inputs, x, name='NASNet')
 
-    # load weights
+    # Load weights.
     if weights == 'imagenet':
         if default_size == 224:  # mobile version
             if include_top:

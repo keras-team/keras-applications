@@ -167,7 +167,7 @@ def MobileNet(input_shape=None,
                          'or the path to the weights file to be loaded.')
 
     if weights == 'imagenet' and include_top and classes != 1000:
-        raise ValueError('If using `weights` as ImageNet with `include_top` '
+        raise ValueError('If using `weights` as `"imagenet"` with `include_top` '
                          'as true, `classes` should be 1000')
 
     # Determine proper input shape and default size.
@@ -299,7 +299,7 @@ def MobileNet(input_shape=None,
     # Create model.
     model = models.Model(inputs, x, name='mobilenet_%0.2f_%s' % (alpha, rows))
 
-    # load weights
+    # Load weights.
     if weights == 'imagenet':
         if backend.image_data_format() == 'channels_first':
             raise ValueError('Weights for "channels_first" format '
