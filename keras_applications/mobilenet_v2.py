@@ -97,10 +97,6 @@ BASE_WEIGHT_PATH = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
                     'releases/download/v1.1/')
 
 
-def relu6(x):
-    return backend.relu(x, max_value=6)
-
-
 def preprocess_input(x):
     """Preprocesses a numpy array encoding a batch of images.
 
@@ -144,12 +140,6 @@ def MobileNetV2(input_shape=None,
                 pooling=None,
                 classes=1000):
     """Instantiates the MobileNetV2 architecture.
-
-    To load a MobileNetV2 model via `load_model`, import the custom
-    objects `relu6` and pass them to the `custom_objects` parameter.
-    E.g.
-    model = load_model('mobilenet_v2.h5', custom_objects={
-                       'relu6': mobilenet_v2.relu6})
 
     # Arguments
         input_shape: optional shape tuple, to be specified if you would
@@ -354,7 +344,7 @@ def MobileNetV2(input_shape=None,
                       name='Conv1')(img_input)
     x = layers.BatchNormalization(
         epsilon=1e-3, momentum=0.999, name='bn_Conv1')(x)
-    x = layers.Activation(relu6, name='Conv1_relu')(x)
+    x = layers.ReLU(6., name='Conv1_relu')(x)
 
     x = _inverted_res_block(x, filters=16, alpha=alpha, stride=1,
                             expansion=1, block_id=0)
@@ -412,7 +402,7 @@ def MobileNetV2(input_shape=None,
     x = layers.BatchNormalization(epsilon=1e-3,
                                   momentum=0.999,
                                   name='Conv_1_bn')(x)
-    x = layers.Activation(relu6, name='out_relu')(x)
+    x = layers.ReLU(6., name='out_relu')(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D()(x)
@@ -480,7 +470,7 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
         x = layers.BatchNormalization(epsilon=1e-3,
                                       momentum=0.999,
                                       name=prefix + 'expand_BN')(x)
-        x = layers.Activation(relu6, name=prefix + 'expand_relu')(x)
+        x = layers.ReLU(6., name=prefix + 'expand_relu')(x)
     else:
         prefix = 'expanded_conv_'
 
@@ -495,7 +485,7 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
                                   momentum=0.999,
                                   name=prefix + 'depthwise_BN')(x)
 
-    x = layers.Activation(relu6, name=prefix + 'depthwise_relu')(x)
+    x = layers.ReLU(6., name=prefix + 'depthwise_relu')(x)
 
     # Project
     x = layers.Conv2D(pointwise_filters,
