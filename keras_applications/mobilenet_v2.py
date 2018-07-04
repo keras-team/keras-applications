@@ -97,6 +97,10 @@ BASE_WEIGHT_PATH = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
                     'releases/download/v1.1/')
 
 
+def relu6(x):
+    return backend.relu(x, max_value=6)
+
+
 def preprocess_input(x):
     """Preprocesses a numpy array encoding a batch of images.
 
