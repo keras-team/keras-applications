@@ -74,10 +74,6 @@ BASE_WEIGHT_PATH = ('https://github.com/fchollet/deep-learning-models/'
                     'releases/download/v0.6/')
 
 
-def relu6(x):
-    return backend.relu(x, max_value=6)
-
-
 def preprocess_input(x):
     """Preprocesses a numpy array encoding a batch of images.
 
