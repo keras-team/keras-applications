@@ -100,6 +100,11 @@ def _test_application_basic(app, last_dim=1000, module=None):
             lambda: app(weights='imagenet'), module.preprocess_input)
         assert output_shape == (None, last_dim)
 
+        modelkey = app.__name__.lower()
+        answers = np.load('tests/data/elephant.npz')
+        if modelkey in answers:
+            np.testing.assert_allclose(answers[modelkey], preds, atol=1e-2)
+
         names = [p[1] for p in module.decode_predictions(preds)[0]]
         # Test correct label is in top 3 (weak correctness test).
         assert 'African_elephant' in names[:3]
