@@ -32,8 +32,8 @@ from .imagenet_utils import _obtain_input_shape
 
 
 BASE_WEIGTHS_PATH = (
-    'https://github.com/fchollet/deep-learning-models/'
-    'releases/download/v0.8/')
+    'https://github.com/keras-team/keras-applications/'
+    'releases/download/densenet/')
 DENSENET121_WEIGHT_PATH = (
     BASE_WEIGTHS_PATH +
     'densenet121_weights_tf_dim_ordering_tf_kernels.h5')
@@ -253,38 +253,38 @@ def DenseNet(blocks,
                     'densenet121_weights_tf_dim_ordering_tf_kernels.h5',
                     DENSENET121_WEIGHT_PATH,
                     cache_subdir='models',
-                    file_hash='0962ca643bae20f9b6771cb844dca3b0')
+                    file_hash='9d60b8095a5708f2dcce2bca79d332c7')
             elif blocks == [6, 12, 32, 32]:
                 weights_path = keras_utils.get_file(
                     'densenet169_weights_tf_dim_ordering_tf_kernels.h5',
                     DENSENET169_WEIGHT_PATH,
                     cache_subdir='models',
-                    file_hash='bcf9965cf5064a5f9eb6d7dc69386f43')
+                    file_hash='d699b8f76981ab1b30698df4c175e90b')
             elif blocks == [6, 12, 48, 32]:
                 weights_path = keras_utils.get_file(
                     'densenet201_weights_tf_dim_ordering_tf_kernels.h5',
                     DENSENET201_WEIGHT_PATH,
                     cache_subdir='models',
-                    file_hash='7bb75edd58cb43163be7e0005fbe95ef')
+                    file_hash='1ceb130c1ea1b78c3bf6114dbdfd8807')
         else:
             if blocks == [6, 12, 24, 16]:
                 weights_path = keras_utils.get_file(
                     'densenet121_weights_tf_dim_ordering_tf_kernels_notop.h5',
                     DENSENET121_WEIGHT_PATH_NO_TOP,
                     cache_subdir='models',
-                    file_hash='4912a53fbd2a69346e7f2c0b5ec8c6d3')
+                    file_hash='30ee3e1110167f948a6b9946edeeb738')
             elif blocks == [6, 12, 32, 32]:
                 weights_path = keras_utils.get_file(
                     'densenet169_weights_tf_dim_ordering_tf_kernels_notop.h5',
                     DENSENET169_WEIGHT_PATH_NO_TOP,
                     cache_subdir='models',
-                    file_hash='50662582284e4cf834ce40ab4dfa58c6')
+                    file_hash='b8c4d4c20dd625c148057b9ff1c1176b')
             elif blocks == [6, 12, 48, 32]:
                 weights_path = keras_utils.get_file(
                     'densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5',
                     DENSENET201_WEIGHT_PATH_NO_TOP,
                     cache_subdir='models',
-                    file_hash='1c2de60ee40562448dbac34a0737e798')
+                    file_hash='c13680b51ded0fb44dff2d8f86ac8bb1')
         model.load_weights(weights_path)
     elif weights is not None:
         model.load_weights(weights)
