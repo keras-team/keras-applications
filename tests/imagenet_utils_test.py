@@ -8,7 +8,6 @@ import keras
 import keras_applications
 keras_applications.set_keras_submodules(
     backend=keras.backend,
-    engine=keras.engine,
     layers=keras.layers,
     models=keras.models,
     utils=keras.utils)
