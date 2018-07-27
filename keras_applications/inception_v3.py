@@ -366,7 +366,11 @@ def InceptionV3(include_top=True,
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
     if input_tensor is not None:
-        inputs = engine.get_source_inputs(input_tensor)
+        if hasattr(keras_utils, 'get_source_inputs'):
+            get_source_inputs = keras_utils.get_source_inputs
+        else:
+            get_source_inputs = engine.get_source_inputs
+        inputs = get_source_inputs(input_tensor)
     else:
         inputs = img_input
     # Create model.

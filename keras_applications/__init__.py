@@ -11,7 +11,12 @@ _KERAS_MODELS = None
 _KERAS_UTILS = None
 
 
-def set_keras_submodules(backend, engine, layers, models, utils):
+def set_keras_submodules(backend=None,
+                         engine=None,
+                         layers=None,
+                         models=None,
+                         utils=None):
+    # TODO: remove `engine` argument after release of Keras 2.2.1.
     global _KERAS_BACKEND
     global _KERAS_ENGINE
     global _KERAS_LAYERS
