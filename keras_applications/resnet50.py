@@ -202,7 +202,7 @@ def ResNet50(include_top=True,
     # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
-                                      min_size=197,
+                                      min_size=32,
                                       data_format=backend.image_data_format(),
                                       require_flatten=include_top,
                                       weights=weights)
@@ -250,8 +250,7 @@ def ResNet50(include_top=True,
     x = identity_block(x, 3, [512, 512, 2048], stage=5, block='c')
 
     if include_top:
-        x = layers.AveragePooling2D((7, 7), name='avg_pool')(x)
-        x = layers.Flatten()(x)
+        x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
         x = layers.Dense(classes, activation='softmax', name='fc1000')(x)
     else:
         if pooling == 'avg':
