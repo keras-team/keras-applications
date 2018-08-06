@@ -18,7 +18,9 @@ from keras_applications import inception_v3
 from keras_applications import mobilenet
 from keras_applications import mobilenet_v2
 from keras_applications import nasnet
-from keras_applications import resnet50
+from keras_applications import resnet
+from keras_applications import resnet_v2
+from keras_applications import resnext
 from keras_applications import vgg16
 from keras_applications import vgg19
 from keras_applications import xception
@@ -30,6 +32,15 @@ from keras import backend
 from multiprocessing import Process, Queue
 
 
+RESNET_LIST = [resnet.ResNet50,
+               resnet.ResNet101,
+               resnet.ResNet152]
+RESNETV2_LIST = [resnet_v2.ResNet50V2,
+                 resnet_v2.ResNet101V2,
+                 resnet_v2.ResNet152V2]
+RESNEXT_LIST = [resnext.ResNeXt50c32,
+                resnext.ResNeXt101c32,
+                resnext.ResNeXt101c64]
 MOBILENET_LIST = [(mobilenet.MobileNet, mobilenet, 1024),
                   (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280)]
 DENSENET_LIST = [(densenet.DenseNet121, 1024),
@@ -139,14 +150,30 @@ def _test_app_pooling(app, last_dim):
     assert output_shape == (None, last_dim)
 
 
-def test_resnet50():
-    app = resnet50.ResNet50
-    module = resnet50
+def test_resnet():
+    app = random.choice(RESNET_LIST)
+    module = resnet
     last_dim = 2048
     _test_application_basic(app, module=module)
     _test_application_notop(app, last_dim)
     _test_application_variable_input_channels(app, last_dim)
     _test_app_pooling(app, last_dim)
+
+
+def test_resnetv2():
+    app = random.choice(RESNETV2_LIST)
+    module = resnet_v2
+    last_dim = 2048
+    _test_application_basic(app, module=module)
+    _test_application_notop(app, last_dim)
+    _test_application_variable_input_channels(app, last_dim)
+    _test_app_pooling(app, last_dim)
+
+
+def test_resnext():
+    app = random.choice(RESNEXT_LIST)
+    module = resnext
+    _test_application_basic(app, module=module)
 
 
 def test_vgg():
