@@ -6,7 +6,10 @@ from keras.applications import densenet
 from keras.applications import inception_resnet_v2
 from keras.applications import inception_v3
 from keras.applications import mobilenet
-from keras.applications import mobilenet_v2
+try:
+    from keras.applications import mobilenet_v2
+except ImportError:
+    from keras.applications import mobilenetv2 as mobilenet_v2
 from keras.applications import nasnet
 from keras.applications import resnet50
 from keras.applications import vgg16
