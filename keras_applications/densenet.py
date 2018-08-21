@@ -187,7 +187,7 @@ def DenseNet(blocks,
     # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
-                                      min_size=221,
+                                      min_size=32,
                                       data_format=backend.image_data_format(),
                                       require_flatten=include_top,
                                       weights=weights)

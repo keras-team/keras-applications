@@ -30,8 +30,8 @@ from keras import backend
 from multiprocessing import Process, Queue
 
 
-MOBILENET_LIST = [(mobilenet.MobileNet, 1024),
-                  (mobilenet_v2.MobileNetV2, 1280)]
+MOBILENET_LIST = [(mobilenet.MobileNet, mobilenet, 1024),
+                  (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280)]
 DENSENET_LIST = [(densenet.DenseNet121, 1024),
                  (densenet.DenseNet169, 1664),
                  (densenet.DenseNet201, 1920)]
@@ -190,8 +190,7 @@ def test_inceptionresnetv2():
 
 
 def test_mobilenet():
-    app, last_dim = random.choice(MOBILENET_LIST)
-    module = mobilenet
+    app, module, last_dim = random.choice(MOBILENET_LIST)
     _test_application_basic(app, module=module)
     _test_application_notop(app, last_dim)
     _test_application_variable_input_channels(app, last_dim)

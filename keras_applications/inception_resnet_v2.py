@@ -239,7 +239,7 @@ def InceptionResNetV2(include_top=True,
     input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,
-        min_size=139,
+        min_size=75,
         data_format=backend.image_data_format(),
         require_flatten=False,
         weights=weights)

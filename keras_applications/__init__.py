@@ -64,5 +64,3 @@ def get_submodules_from_kwargs(kwargs):
         if key not in ['backend', 'layers', 'models', 'utils']:
             raise TypeError('Invalid keyword argument: %s', key)
     return backend, layers, models, utils
-
-__version__ = '1.0.5'
