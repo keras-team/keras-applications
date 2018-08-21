@@ -2,26 +2,16 @@ import pytest
 import random
 import numpy as np
 
-import keras
-# TODO: remove the few lines below once the Keras release
-# is configured to use keras_applications
-import keras_applications
-keras_applications.set_keras_submodules(
-    backend=keras.backend,
-    layers=keras.layers,
-    models=keras.models,
-    utils=keras.utils)
-
-from keras_applications import densenet
-from keras_applications import inception_resnet_v2
-from keras_applications import inception_v3
-from keras_applications import mobilenet
-from keras_applications import mobilenet_v2
-from keras_applications import nasnet
-from keras_applications import resnet50
-from keras_applications import vgg16
-from keras_applications import vgg19
-from keras_applications import xception
+from keras.applications import densenet
+from keras.applications import inception_resnet_v2
+from keras.applications import inception_v3
+from keras.applications import mobilenet
+from keras.applications import mobilenet_v2
+from keras.applications import nasnet
+from keras.applications import resnet50
+from keras.applications import vgg16
+from keras.applications import vgg19
+from keras.applications import xception
 
 from keras.utils.test_utils import keras_test
 from keras.preprocessing import image
