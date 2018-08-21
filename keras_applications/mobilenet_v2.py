@@ -80,20 +80,18 @@ import os
 import warnings
 import numpy as np
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
-from . import imagenet_utils
+from . import get_submodules_from_kwargs
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
 
 # TODO Change path to v1.1
 BASE_WEIGHT_PATH = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
                     'releases/download/v1.1/')
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 def preprocess_input(x):
@@ -137,7 +135,8 @@ def MobileNetV2(input_shape=None,
                 weights='imagenet',
                 input_tensor=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     """Instantiates the MobileNetV2 architecture.
 
     # Arguments
@@ -193,6 +192,8 @@ def MobileNetV2(input_shape=None,
             or invalid input shape or invalid depth_multiplier, alpha,
             rows when weights='imagenet'
     """
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
 
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
@@ -218,12 +219,12 @@ def MobileNetV2(input_shape=None,
                                  'is not type input_tensor')
         if is_input_t_tensor:
             if backend.image_data_format == 'channels_first':
-                if input_tensor._keras_shape[1] != input_shape[1]:
+                if backend.int_shape(input_tensor)[1] != input_shape[1]:
                     raise ValueError('input_shape: ', input_shape,
                                      'and input_tensor: ', input_tensor,
                                      'do not meet the same shape requirements')
             else:
-                if input_tensor._keras_shape[2] != input_shape[1]:
+                if backend.int_shape(input_tensor)[2] != input_shape[1]:
                     raise ValueError('input_shape: ', input_shape,
                                      'and input_tensor: ', input_tensor,
                                      'do not meet the same shape requirements')
@@ -245,11 +246,11 @@ def MobileNetV2(input_shape=None,
             default_size = 224
         elif input_shape is None and backend.is_keras_tensor(input_tensor):
             if backend.image_data_format() == 'channels_first':
-                rows = input_tensor._keras_shape[2]
-                cols = input_tensor._keras_shape[3]
+                rows = backend.int_shape(input_tensor)[2]
+                cols = backend.int_shape(input_tensor)[3]
             else:
-                rows = input_tensor._keras_shape[1]
-                cols = input_tensor._keras_shape[2]
+                rows = backend.int_shape(input_tensor)[1]
+                cols = backend.int_shape(input_tensor)[2]
 
             if rows == cols and rows in [96, 128, 160, 192, 224]:
                 default_size = rows
@@ -452,7 +453,7 @@ def MobileNetV2(input_shape=None,
 
 
 def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
-    in_channels = inputs._keras_shape[-1]
+    in_channels = backend.int_shape(inputs)[-1]
     pointwise_conv_filters = int(filters * alpha)
     pointwise_filters = _make_divisible(pointwise_conv_filters, 8)
     x = inputs

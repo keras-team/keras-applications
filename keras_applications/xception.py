@@ -21,13 +21,7 @@ from __future__ import print_function
 import os
 import warnings
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
@@ -48,7 +42,8 @@ def Xception(include_top=True,
              input_tensor=None,
              input_shape=None,
              pooling=None,
-             classes=1000):
+             classes=1000,
+             **kwargs):
     """Instantiates the Xception architecture.
 
     Optionally loads weights pre-trained on ImageNet. This model can
@@ -97,6 +92,8 @@ def Xception(include_top=True,
         RuntimeError: If attempting to run this model with a
             backend that does not support separable convolutions.
     """
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '
@@ -325,7 +322,7 @@ def Xception(include_top=True,
     return model
 
 
-def preprocess_input(x):
+def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     # Arguments
@@ -334,4 +331,4 @@ def preprocess_input(x):
     # Returns
         Preprocessed array.
     """
-    return imagenet_utils.preprocess_input(x, mode='tf')
+    return imagenet_utils.preprocess_input(x, mode='tf', **kwargs)

@@ -16,13 +16,7 @@ from __future__ import print_function
 
 import os
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
@@ -36,6 +30,11 @@ WEIGHTS_PATH_NO_TOP = (
     'https://github.com/fchollet/deep-learning-models/'
     'releases/download/v0.5/'
     'inception_v3_weights_tf_dim_ordering_tf_kernels_notop.h5')
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 def conv2d_bn(x,
@@ -87,7 +86,8 @@ def InceptionV3(include_top=True,
                 input_tensor=None,
                 input_shape=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     """Instantiates the Inception v3 architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -131,6 +131,9 @@ def InceptionV3(include_top=True,
         ValueError: in case of invalid argument for `weights`,
             or invalid input shape.
     """
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '
@@ -392,7 +395,7 @@ def InceptionV3(include_top=True,
     return model
 
 
-def preprocess_input(x):
+def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     # Arguments
@@ -401,4 +404,4 @@ def preprocess_input(x):
     # Returns
         Preprocessed array.
     """
-    return imagenet_utils.preprocess_input(x, mode='tf')
+    return imagenet_utils.preprocess_input(x, mode='tf', **kwargs)

@@ -14,13 +14,7 @@ from __future__ import print_function
 import os
 import warnings
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
@@ -33,6 +27,11 @@ WEIGHTS_PATH = ('https://github.com/fchollet/deep-learning-models/'
 WEIGHTS_PATH_NO_TOP = ('https://github.com/fchollet/deep-learning-models/'
                        'releases/download/v0.2/'
                        'resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5')
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 def identity_block(input_tensor, kernel_size, filters, stage, block):
@@ -145,7 +144,8 @@ def ResNet50(include_top=True,
              input_tensor=None,
              input_shape=None,
              pooling=None,
-             classes=1000):
+             classes=1000,
+             **kwargs):
     """Instantiates the ResNet50 architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -189,6 +189,9 @@ def ResNet50(include_top=True,
         ValueError: in case of invalid argument for `weights`,
             or invalid input shape.
     """
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '

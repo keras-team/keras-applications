@@ -18,13 +18,7 @@ from __future__ import print_function
 
 import os
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
@@ -51,6 +45,11 @@ DENSENET201_WEIGHT_PATH = (
 DENSENET201_WEIGHT_PATH_NO_TOP = (
     BASE_WEIGTHS_PATH +
     'densenet201_weights_tf_dim_ordering_tf_kernels_notop.h5')
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 def dense_block(x, blocks, name):
@@ -127,7 +126,8 @@ def DenseNet(blocks,
              input_tensor=None,
              input_shape=None,
              pooling=None,
-             classes=1000):
+             classes=1000,
+             **kwargs):
     """Instantiates the DenseNet architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -171,6 +171,9 @@ def DenseNet(blocks,
         ValueError: in case of invalid argument for `weights`,
             or invalid input shape.
     """
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '
@@ -296,11 +299,13 @@ def DenseNet121(include_top=True,
                 input_tensor=None,
                 input_shape=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     return DenseNet([6, 12, 24, 16],
                     include_top, weights,
                     input_tensor, input_shape,
-                    pooling, classes)
+                    pooling, classes,
+                    **kwargs)
 
 
 def DenseNet169(include_top=True,
@@ -308,11 +313,13 @@ def DenseNet169(include_top=True,
                 input_tensor=None,
                 input_shape=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     return DenseNet([6, 12, 32, 32],
                     include_top, weights,
                     input_tensor, input_shape,
-                    pooling, classes)
+                    pooling, classes,
+                    **kwargs)
 
 
 def DenseNet201(include_top=True,
@@ -320,14 +327,16 @@ def DenseNet201(include_top=True,
                 input_tensor=None,
                 input_shape=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     return DenseNet([6, 12, 48, 32],
                     include_top, weights,
                     input_tensor, input_shape,
-                    pooling, classes)
+                    pooling, classes,
+                    **kwargs)
 
 
-def preprocess_input(x, data_format=None):
+def preprocess_input(x, data_format=None, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     # Arguments
@@ -337,7 +346,8 @@ def preprocess_input(x, data_format=None):
     # Returns
         Preprocessed array.
     """
-    return imagenet_utils.preprocess_input(x, data_format, mode='torch')
+    return imagenet_utils.preprocess_input(x, data_format,
+                                           mode='torch', **kwargs)
 
 
 setattr(DenseNet121, '__doc__', DenseNet.__doc__)

@@ -40,13 +40,7 @@ from __future__ import division
 import os
 import warnings
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
@@ -57,6 +51,11 @@ NASNET_MOBILE_WEIGHT_PATH = BASE_WEIGHTS_PATH + 'NASNet-mobile.h5'
 NASNET_MOBILE_WEIGHT_PATH_NO_TOP = BASE_WEIGHTS_PATH + 'NASNet-mobile-no-top.h5'
 NASNET_LARGE_WEIGHT_PATH = BASE_WEIGHTS_PATH + 'NASNet-large.h5'
 NASNET_LARGE_WEIGHT_PATH_NO_TOP = BASE_WEIGHTS_PATH + 'NASNet-large-no-top.h5'
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 def NASNet(input_shape=None,
@@ -70,7 +69,8 @@ def NASNet(input_shape=None,
            input_tensor=None,
            pooling=None,
            classes=1000,
-           default_size=None):
+           default_size=None,
+           **kwargs):
     '''Instantiates a NASNet model.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -133,6 +133,9 @@ def NASNet(input_shape=None,
         ValueError: In case of invalid argument for `weights`,
             invalid input shape or invalid `penultimate_filters` value.
     '''
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '
@@ -300,7 +303,8 @@ def NASNetLarge(input_shape=None,
                 weights='imagenet',
                 input_tensor=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     '''Instantiates a NASNet model in ImageNet mode.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -357,7 +361,8 @@ def NASNetLarge(input_shape=None,
                   input_tensor=input_tensor,
                   pooling=pooling,
                   classes=classes,
-                  default_size=331)
+                  default_size=331,
+                  **kwargs)
 
 
 def NASNetMobile(input_shape=None,
@@ -365,7 +370,8 @@ def NASNetMobile(input_shape=None,
                  weights='imagenet',
                  input_tensor=None,
                  pooling=None,
-                 classes=1000):
+                 classes=1000,
+                 **kwargs):
     '''Instantiates a Mobile NASNet model in ImageNet mode.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -422,7 +428,8 @@ def NASNetMobile(input_shape=None,
                   input_tensor=input_tensor,
                   pooling=pooling,
                   classes=classes,
-                  default_size=224)
+                  default_size=224,
+                  **kwargs)
 
 
 def _separable_conv_block(ip, filters,
@@ -724,7 +731,7 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
         return x, ip
 
 
-def preprocess_input(x):
+def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     # Arguments
@@ -733,4 +740,4 @@ def preprocess_input(x):
     # Returns
         Preprocessed array.
     """
-    return imagenet_utils.preprocess_input(x, mode='tf')
+    return imagenet_utils.preprocess_input(x, mode='tf', **kwargs)

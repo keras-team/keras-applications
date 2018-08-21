@@ -13,7 +13,9 @@ _KERAS_UTILS = None
 def set_keras_submodules(backend=None,
                          layers=None,
                          models=None,
-                         utils=None):
+                         utils=None,
+                         engine=None):
+    # Deprecated, will be removed in the future.
     global _KERAS_BACKEND
     global _KERAS_LAYERS
     global _KERAS_MODELS
@@ -25,6 +27,7 @@ def set_keras_submodules(backend=None,
 
 
 def get_keras_submodule(name):
+    # Deprecated, will be removed in the future.
     if name not in {'backend', 'layers', 'models', 'utils'}:
         raise ImportError(
             'Can only retrieve one of "backend", '
@@ -50,3 +53,14 @@ def get_keras_submodule(name):
         return _KERAS_MODELS
     elif name == 'utils':
         return _KERAS_UTILS
+
+
+def get_submodules_from_kwargs(kwargs):
+    backend = kwargs.get('backend', _KERAS_BACKEND)
+    layers = kwargs.get('layers', _KERAS_LAYERS)
+    models = kwargs.get('models', _KERAS_MODELS)
+    utils = kwargs.get('utils', _KERAS_UTILS)
+    for key in kwargs.keys():
+        if key not in ['backend', 'layers', 'models', 'utils']:
+            raise TypeError('Invalid keyword argument: %s', key)
+    return backend, layers, models, utils
