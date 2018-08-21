@@ -2,7 +2,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from keras.applications import imagenet_utils as utils
+# We don't use keras.applications.imagenet_utils here
+# because we also test _obtain_input_shape which is not exposed.
+from keras_applications import imagenet_utils as utils
 from keras import models
 from keras import layers
 
