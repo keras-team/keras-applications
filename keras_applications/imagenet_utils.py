@@ -8,10 +8,7 @@ import json
 import warnings
 import numpy as np
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-keras_utils = get_keras_submodule('utils')
+from . import get_submodules_from_kwargs
 
 CLASS_INDEX = None
 CLASS_INDEX_PATH = ('https://s3.amazonaws.com/deep-learning-models/'
@@ -21,7 +18,7 @@ CLASS_INDEX_PATH = ('https://s3.amazonaws.com/deep-learning-models/'
 _IMAGENET_MEAN = None
 
 
-def _preprocess_numpy_input(x, data_format, mode):
+def _preprocess_numpy_input(x, data_format, mode, **kwargs):
     """Preprocesses a Numpy array encoding a batch of images.
 
     # Arguments
@@ -41,6 +38,7 @@ def _preprocess_numpy_input(x, data_format, mode):
     # Returns
         Preprocessed Numpy array.
     """
+    backend, _, _, _ = get_submodules_from_kwargs(kwargs)
     if not issubclass(x.dtype.type, np.floating):
         x = x.astype(backend.floatx(), copy=False)
 
@@ -95,7 +93,7 @@ def _preprocess_numpy_input(x, data_format, mode):
     return x
 
 
-def _preprocess_symbolic_input(x, data_format, mode):
+def _preprocess_symbolic_input(x, data_format, mode, **kwargs):
     """Preprocesses a tensor encoding a batch of images.
 
     # Arguments
@@ -116,6 +114,8 @@ def _preprocess_symbolic_input(x, data_format, mode):
         Preprocessed tensor.
     """
     global _IMAGENET_MEAN
+
+    backend, _, _, _ = get_submodules_from_kwargs(kwargs)
 
     if mode == 'tf':
         x /= 127.5
@@ -154,7 +154,7 @@ def _preprocess_symbolic_input(x, data_format, mode):
     return x
 
 
-def preprocess_input(x, data_format=None, mode='caffe'):
+def preprocess_input(x, data_format=None, mode='caffe', **kwargs):
     """Preprocesses a tensor or Numpy array encoding a batch of images.
 
     # Arguments
@@ -180,19 +180,22 @@ def preprocess_input(x, data_format=None, mode='caffe'):
     # Raises
         ValueError: In case of unknown `data_format` argument.
     """
+    backend, _, _, _ = get_submodules_from_kwargs(kwargs)
+
     if data_format is None:
         data_format = backend.image_data_format()
     if data_format not in {'channels_first', 'channels_last'}:
         raise ValueError('Unknown data_format ' + str(data_format))
 
     if isinstance(x, np.ndarray):
-        return _preprocess_numpy_input(x, data_format=data_format, mode=mode)
+        return _preprocess_numpy_input(x, data_format=data_format,
+                                       mode=mode, **kwargs)
     else:
         return _preprocess_symbolic_input(x, data_format=data_format,
-                                          mode=mode)
+                                          mode=mode, **kwargs)
 
 
-def decode_predictions(preds, top=5):
+def decode_predictions(preds, top=5, **kwargs):
     """Decodes the prediction of an ImageNet model.
 
     # Arguments
@@ -209,6 +212,9 @@ def decode_predictions(preds, top=5):
             (must be 2D).
     """
     global CLASS_INDEX
+
+    backend, _, _, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if len(preds.shape) != 2 or preds.shape[1] != 1000:
         raise ValueError('`decode_predictions` expects '
                          'a batch of predictions '
