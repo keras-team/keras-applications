@@ -2,17 +2,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-import keras
-# TODO: remove the few lines below once the Keras release
-# is configured to use keras_applications
-import keras_applications
-keras_applications.set_keras_submodules(
-    backend=keras.backend,
-    layers=keras.layers,
-    models=keras.models,
-    utils=keras.utils)
-
-from keras_applications import imagenet_utils as utils
+from keras.applications import imagenet_utils as utils
 from keras import models
 from keras import layers
 
