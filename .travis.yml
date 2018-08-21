@@ -6,8 +6,6 @@ matrix:
         - python: 2.7
           env: KERAS_BACKEND=tensorflow TEST_MODE=PEP8
         - python: 2.7
-          env: KERAS_BACKEND=tensorflow TEST_MODE=INTEGRATION_TESTS
-        - python: 2.7
           env: KERAS_BACKEND=tensorflow
         - python: 2.7
           env: KERAS_BACKEND=tensorflow KERAS_HEAD=true
@@ -97,11 +95,9 @@ script:
   - sed -i -e 's/"backend":[[:space:]]*"[^"]*/"backend":\ "'$KERAS_BACKEND'/g' ~/.keras/keras.json;
   - echo -e "Running tests with the following config:\n$(cat ~/.keras/keras.json)"
   - if [[ "$DOC_ONLY_CHANGED" == "False" ]]; then
-      if [[ "$TEST_MODE" == "INTEGRATION_TESTS" ]]; then
-        PYTHONPATH=$PWD:$PYTHONPATH py.test tests/integration_tests.py;
-      elif [[ "$TEST_MODE" == "PEP8" ]]; then
+      if [[ "$TEST_MODE" == "PEP8" ]]; then
         PYTHONPATH=$PWD:$PYTHONPATH py.test --pep8 -m pep8 -n0;
       else
-        PYTHONPATH=$PWD:$PYTHONPATH py.test tests/ --ignore=tests/integration_tests --cov-config .coveragerc --cov=keras_applications tests/;
+        PYTHONPATH=$PWD:$PYTHONPATH py.test tests/ --cov-config .coveragerc --cov=keras_applications tests/;
       fi;
     fi
