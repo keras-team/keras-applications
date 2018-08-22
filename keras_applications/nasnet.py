@@ -40,6 +40,7 @@ from __future__ import division
 import os
 import warnings
 
+from . import correct_pad
 from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
@@ -452,10 +453,17 @@ def _separable_conv_block(ip, filters,
 
     with backend.name_scope('separable_conv_block_%s' % block_id):
         x = layers.Activation('relu')(ip)
+        if strides == (2, 2):
+            x = layers.ZeroPadding2D(
+                padding=correct_pad(backend, x, kernel_size),
+                name='separable_conv_1_pad_%s' % block_id)(x)
+            conv_pad = 'valid'
+        else:
+            conv_pad = 'same'
         x = layers.SeparableConv2D(filters, kernel_size,
                                    strides=strides,
                                    name='separable_conv_1_%s' % block_id,
-                                   padding='same', use_bias=False,
+                                   padding=conv_pad, use_bias=False,
                                    kernel_initializer='he_normal')(x)
         x = layers.BatchNormalization(
             axis=channel_dim,
@@ -669,6 +677,9 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             momentum=0.9997,
             epsilon=1e-3,
             name='reduction_bn_1_%s' % block_id)(h)
+        h3 = layers.ZeroPadding2D(
+            padding=correct_pad(backend, h, 3),
+            name='reduction_pad_1_%s' % block_id)(h)
 
         with backend.name_scope('block_1'):
             x1_1 = _separable_conv_block(
@@ -685,8 +696,8 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             x2_1 = layers.MaxPooling2D(
                 (3, 3),
                 strides=(2, 2),
-                padding='same',
-                name='reduction_left2_%s' % block_id)(h)
+                padding='valid',
+                name='reduction_left2_%s' % block_id)(h3)
             x2_2 = _separable_conv_block(
                 p, filters, (7, 7),
                 strides=(2, 2),
@@ -697,8 +708,8 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             x3_1 = layers.AveragePooling2D(
                 (3, 3),
                 strides=(2, 2),
-                padding='same',
-                name='reduction_left3_%s' % block_id)(h)
+                padding='valid',
+                name='reduction_left3_%s' % block_id)(h3)
             x3_2 = _separable_conv_block(
                 p, filters, (5, 5),
                 strides=(2, 2),
@@ -720,8 +731,8 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             x5_2 = layers.MaxPooling2D(
                 (3, 3),
                 strides=(2, 2),
-                padding='same',
-                name='reduction_right5_%s' % block_id)(h)
+                padding='valid',
+                name='reduction_right5_%s' % block_id)(h3)
             x5 = layers.add([x5_1, x5_2], name='reduction_add4_%s' % block_id)
 
         x = layers.concatenate(

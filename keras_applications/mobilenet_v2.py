@@ -80,6 +80,7 @@ import os
 import warnings
 import numpy as np
 
+from . import correct_pad
 from . import get_submodules_from_kwargs
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
@@ -94,7 +95,7 @@ models = None
 keras_utils = None
 
 
-def preprocess_input(x):
+def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     This function applies the "Inception" preprocessing which converts
@@ -336,12 +337,14 @@ def MobileNetV2(input_shape=None,
             img_input = input_tensor
 
     first_block_filters = _make_divisible(32 * alpha, 8)
+    x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
+                             name='Conv1_pad')(img_input)
     x = layers.Conv2D(first_block_filters,
                       kernel_size=3,
                       strides=(2, 2),
-                      padding='same',
+                      padding='valid',
                       use_bias=False,
-                      name='Conv1')(img_input)
+                      name='Conv1')(x)
     x = layers.BatchNormalization(
         epsilon=1e-3, momentum=0.999, name='bn_Conv1')(x)
     x = layers.ReLU(6., name='Conv1_relu')(x)
@@ -475,11 +478,14 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
         prefix = 'expanded_conv_'
 
     # Depthwise
+    if stride == 2:
+        x = layers.ZeroPadding2D(padding=correct_pad(backend, x, 3),
+                                 name=prefix + 'pad')(x)
     x = layers.DepthwiseConv2D(kernel_size=3,
                                strides=stride,
                                activation=None,
                                use_bias=False,
-                               padding='same',
+                               padding='same' if stride == 1 else 'valid',
                                name=prefix + 'depthwise')(x)
     x = layers.BatchNormalization(epsilon=1e-3,
                                   momentum=0.999,
