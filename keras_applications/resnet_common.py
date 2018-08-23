@@ -71,7 +71,8 @@ def ResNet(stack_fn,
            input_tensor=None,
            input_shape=None,
            pooling=None,
-           classes=1000):
+           classes=1000,
+           **kwargs):
     """Instantiates the ResNet, ResNetV2, and ResNeXt architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -121,6 +122,9 @@ def ResNet(stack_fn,
         ValueError: in case of invalid argument for `weights`,
             or invalid input shape.
     """
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '

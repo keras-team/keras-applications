@@ -19,17 +19,17 @@ from __future__ import print_function
 
 import os
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
 from .resnet_common import ResNet
+
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 def block(x, filters, kernel_size=3, stride=1,
@@ -102,7 +102,8 @@ def ResNet50(include_top=True,
              input_tensor=None,
              input_shape=None,
              pooling=None,
-             classes=1000):
+             classes=1000,
+             **kwargs):
     def stack_fn(x):
         x = stack(x, 64, 3, stride1=1, name='conv2')
         x = stack(x, 128, 4, name='conv3')
@@ -112,7 +113,8 @@ def ResNet50(include_top=True,
     return ResNet(stack_fn, False, True, 'resnet50',
                   include_top, weights,
                   input_tensor, input_shape,
-                  pooling, classes)
+                  pooling, classes,
+                  **kwargs)
 
 
 def ResNet101(include_top=True,
@@ -120,7 +122,8 @@ def ResNet101(include_top=True,
               input_tensor=None,
               input_shape=None,
               pooling=None,
-              classes=1000):
+              classes=1000,
+              **kwargs):
     def stack_fn(x):
         x = stack(x, 64, 3, stride1=1, name='conv2')
         x = stack(x, 128, 4, name='conv3')
@@ -130,7 +133,8 @@ def ResNet101(include_top=True,
     return ResNet(stack_fn, False, True, 'resnet101',
                   include_top, weights,
                   input_tensor, input_shape,
-                  pooling, classes)
+                  pooling, classes,
+                  **kwargs)
 
 
 def ResNet152(include_top=True,
@@ -138,7 +142,8 @@ def ResNet152(include_top=True,
               input_tensor=None,
               input_shape=None,
               pooling=None,
-              classes=1000):
+              classes=1000,
+              **kwargs):
     def stack_fn(x):
         x = stack(x, 64, 3, stride1=1, name='conv2')
         x = stack(x, 128, 8, name='conv3')
@@ -148,19 +153,21 @@ def ResNet152(include_top=True,
     return ResNet(stack_fn, False, True, 'resnet152',
                   include_top, weights,
                   input_tensor, input_shape,
-                  pooling, classes)
+                  pooling, classes,
+                  **kwargs)
 
 
-def preprocess_input(x):
+def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     # Arguments
         x: a 4D numpy array consists of RGB values within [0, 255].
+        data_format: data format of the image tensor.
 
     # Returns
         Preprocessed array.
     """
-    return imagenet_utils.preprocess_input(x, mode='caffe')
+    return imagenet_utils.preprocess_input(x, mode='caffe', **kwargs)
 
 
 setattr(ResNet50, '__doc__', ResNet.__doc__)
