@@ -89,6 +89,10 @@ from .imagenet_utils import _obtain_input_shape
 BASE_WEIGHT_PATH = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
                     'releases/download/v1.1/')
 
+PADDING_ALL_SAME = 'padding_all_same'
+PADDING_FRAMEWORK_COMPAT = 'padding_framework_compat'
+PADDING_ALL_EXPLICIT = 'padding_all_explicit'
+
 backend = None
 layers = None
 models = None
@@ -132,6 +136,8 @@ def _make_divisible(v, divisor, min_value=None):
 def MobileNetV2(input_shape=None,
                 alpha=1.0,
                 depth_multiplier=1,
+                min_layer_filters=None,
+                padding_mode=PADDING_FRAMEWORK_COMPAT,
                 include_top=True,
                 weights='imagenet',
                 input_tensor=None,
@@ -161,6 +167,27 @@ def MobileNetV2(input_shape=None,
                  are used at each layer.
         depth_multiplier: depth multiplier for depthwise convolution
             (also called the resolution multiplier)
+        min_layer_filters: The minimum number of filters to use in any layer.
+            This is applied after the width multiplier is used and the layer
+            filter count is made divisible by 8. If None (the default), no
+            additional minimum number of layers will be applied.
+        padding_mode: The padding mode to use for convolutions. One of
+          `mobilenet_v2.PADDING_ALL_SAME`,
+          `mobilenet_v2.PADDING_FRAMEWORK_COMPAT`,
+          `mobilenet_v2.PADDING_ALL_EXPLICIT`.
+          Defaults to `mobilenet_v2PADDING_FRAMEWORK_COMPAT`.
+          `PADDING_ALL_SAME` sets all convolutions to pad using `padding=same`.
+          In this mode different backend frameworks may convolve inputs slightly
+          differently.
+          `PADDING_ALL_EXPLICIT` explicitly prepads inputs for convolutions, and
+          sets the convolutions to execute using `padding='valid'`.
+          With this setting the output dimensions are the same as if 'same'
+          padding were used, even though all convolutions are padded
+          explicitly.
+          `PADDING_FRAMEWORK_COMPAT` sometimes pads explicitly and sometimes
+          uses `padding='same'`, such that regardless of the backend framework,
+          execution will always match running on CNTK or Theano without explicit
+          padding and having all convolution paddings set to 'same'.
         include_top: whether to include the fully-connected
             layer at the top of the network.
         weights: one of `None` (random initialization),
@@ -336,13 +363,20 @@ def MobileNetV2(input_shape=None,
         else:
             img_input = input_tensor
 
-    first_block_filters = _make_divisible(32 * alpha, 8)
-    x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
-                             name='Conv1_pad')(img_input)
+    first_block_filters = _make_divisible(32 * alpha, 8, min_layer_filters)
+    if padding_mode == PADDING_FRAMEWORK_COMPAT:
+      x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
+                               name='Conv1_pad')(img_input)
+    elif padding_mode == PADDING_ALL_EXPLICIT:
+      x = layers.ZeroPadding2D(padding=1,
+                               name='Conv1_pad')(img_input)
+    else:
+      x = img_input
     x = layers.Conv2D(first_block_filters,
                       kernel_size=3,
                       strides=(2, 2),
-                      padding='valid',
+                      padding='same' if padding_mode == PADDING_ALL_SAME
+                              else 'valid',
                       use_bias=False,
                       name='Conv1')(x)
     x = layers.BatchNormalization(
@@ -350,51 +384,85 @@ def MobileNetV2(input_shape=None,
     x = layers.ReLU(6., name='Conv1_relu')(x)
 
     x = _inverted_res_block(x, filters=16, alpha=alpha, stride=1,
-                            expansion=1, block_id=0)
+                            expansion=1, block_id=0,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
 
     x = _inverted_res_block(x, filters=24, alpha=alpha, stride=2,
-                            expansion=6, block_id=1)
+                            expansion=6, block_id=1,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=24, alpha=alpha, stride=1,
-                            expansion=6, block_id=2)
+                            expansion=6, block_id=2,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
 
     x = _inverted_res_block(x, filters=32, alpha=alpha, stride=2,
-                            expansion=6, block_id=3)
+                            expansion=6, block_id=3,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=32, alpha=alpha, stride=1,
-                            expansion=6, block_id=4)
+                            expansion=6, block_id=4,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=32, alpha=alpha, stride=1,
-                            expansion=6, block_id=5)
+                            expansion=6, block_id=5,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
 
     x = _inverted_res_block(x, filters=64, alpha=alpha, stride=2,
-                            expansion=6, block_id=6)
+                            expansion=6, block_id=6,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=64, alpha=alpha, stride=1,
-                            expansion=6, block_id=7)
+                            expansion=6, block_id=7,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=64, alpha=alpha, stride=1,
-                            expansion=6, block_id=8)
+                            expansion=6, block_id=8,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=64, alpha=alpha, stride=1,
-                            expansion=6, block_id=9)
+                            expansion=6, block_id=9,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
 
     x = _inverted_res_block(x, filters=96, alpha=alpha, stride=1,
-                            expansion=6, block_id=10)
+                            expansion=6, block_id=10,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=96, alpha=alpha, stride=1,
-                            expansion=6, block_id=11)
+                            expansion=6, block_id=11,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=96, alpha=alpha, stride=1,
-                            expansion=6, block_id=12)
+                            expansion=6, block_id=12,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
 
     x = _inverted_res_block(x, filters=160, alpha=alpha, stride=2,
-                            expansion=6, block_id=13)
+                            expansion=6, block_id=13,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=160, alpha=alpha, stride=1,
-                            expansion=6, block_id=14)
+                            expansion=6, block_id=14,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
     x = _inverted_res_block(x, filters=160, alpha=alpha, stride=1,
-                            expansion=6, block_id=15)
+                            expansion=6, block_id=15,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
 
     x = _inverted_res_block(x, filters=320, alpha=alpha, stride=1,
-                            expansion=6, block_id=16)
+                            expansion=6, block_id=16,
+                            min_layer_filters=min_layer_filters,
+                            padding_mode=padding_mode)
 
     # no alpha applied to last conv as stated in the paper:
     # if the width multiplier is greater than 1 we
     # increase the number of output channels
     if alpha > 1.0:
-        last_block_filters = _make_divisible(1280 * alpha, 8)
+        last_block_filters = _make_divisible(1280 * alpha, 8, min_layer_filters)
     else:
         last_block_filters = 1280
 
@@ -455,10 +523,12 @@ def MobileNetV2(input_shape=None,
     return model
 
 
-def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
+def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id,
+                        min_layer_filters, padding_mode):
     in_channels = backend.int_shape(inputs)[-1]
     pointwise_conv_filters = int(filters * alpha)
-    pointwise_filters = _make_divisible(pointwise_conv_filters, 8)
+    pointwise_filters = _make_divisible(pointwise_conv_filters, 8,
+                                        min_layer_filters)
     x = inputs
     prefix = 'block_{}_'.format(block_id)
 
@@ -478,14 +548,20 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
         prefix = 'expanded_conv_'
 
     # Depthwise
-    if stride == 2:
+    padding = 'same'
+    if stride == 2 and padding_mode == PADDING_FRAMEWORK_COMPAT:
+        padding = 'valid'
         x = layers.ZeroPadding2D(padding=correct_pad(backend, x, 3),
+                                 name=prefix + 'pad')(x)
+    elif padding_mode == PADDING_ALL_EXPLICIT:
+        padding = 'valid'
+        x = layers.ZeroPadding2D(padding=1,
                                  name=prefix + 'pad')(x)
     x = layers.DepthwiseConv2D(kernel_size=3,
                                strides=stride,
                                activation=None,
                                use_bias=False,
-                               padding='same' if stride == 1 else 'valid',
+                               padding=padding,
                                name=prefix + 'depthwise')(x)
     x = layers.BatchNormalization(epsilon=1e-3,
                                   momentum=0.999,
