@@ -365,13 +365,13 @@ def MobileNetV2(input_shape=None,
 
     first_block_filters = _make_divisible(32 * alpha, 8, min_layer_filters)
     if padding_mode == PADDING_FRAMEWORK_COMPAT:
-      x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
-                               name='Conv1_pad')(img_input)
+        x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
+                                 name='Conv1_pad')(img_input)
     elif padding_mode == PADDING_ALL_EXPLICIT:
-      x = layers.ZeroPadding2D(padding=1,
-                               name='Conv1_pad')(img_input)
+        x = layers.ZeroPadding2D(padding=1,
+                                 name='Conv1_pad')(img_input)
     else:
-      x = img_input
+        x = img_input
     x = layers.Conv2D(first_block_filters,
                       kernel_size=3,
                       strides=(2, 2),
