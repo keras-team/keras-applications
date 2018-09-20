@@ -146,9 +146,11 @@ def DenseNet(blocks,
             to use as image input for the model.
         input_shape: optional shape tuple, only to be specified
             if `include_top` is False (otherwise the input shape
-            has to be `(224, 224, 3)` (with `channels_last` data format)
-            or `(3, 224, 224)` (with `channels_first` data format).
-            It should have exactly 3 inputs channels.
+            has to be `(224, 224, 3)` (with `'channels_last'` data format)
+            or `(3, 224, 224)` (with `'channels_first'` data format).
+            It should have exactly 3 inputs channels,
+            and width and height should be no smaller than 32.
+            E.g. `(200, 200, 3)` would be one valid value.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be

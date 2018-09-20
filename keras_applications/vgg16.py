@@ -55,7 +55,7 @@ def VGG16(include_top=True,
             (with `channels_last` data format)
             or `(3, 224, 224)` (with `channels_first` data format).
             It should have exactly 3 input channels,
-            and width and height should be no smaller than 48.
+            and width and height should be no smaller than 32.
             E.g. `(200, 200, 3)` would be one valid value.
         pooling: Optional pooling mode for feature extraction
             when `include_top` is `False`.

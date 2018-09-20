@@ -107,7 +107,7 @@ def InceptionV3(include_top=True,
             has to be `(299, 299, 3)` (with `channels_last` data format)
             or `(3, 299, 299)` (with `channels_first` data format).
             It should have exactly 3 inputs channels,
-            and width and height should be no smaller than 139.
+            and width and height should be no smaller than 75.
             E.g. `(150, 150, 3)` would be one valid value.
         pooling: Optional pooling mode for feature extraction
             when `include_top` is `False`.
