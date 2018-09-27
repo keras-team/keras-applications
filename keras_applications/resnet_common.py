@@ -53,12 +53,10 @@ WEIGHTS_HASHES = {
                     'c0ed64b8031c3730f411d2eb4eea35b5'),
     'resnet152v2': ('a49b44d1979771252814e80f8ec446f9',
                     'ed17cf2e0169df9d443503ef94b23b33'),
-    'resnext50c32': ('67a5b30d522ed92f75a1f16eef299d1a',
-                     '62527c363bdd9ec598bed41947b379fc'),
-    'resnext101c32': ('34fb605428fcc7aa4d62f44404c11509',
-                      '0f678c91647380debd923963594981b3'),
-    'resnext101c64': ('6ba2184ae5d985bddea496ac8b18aaee',
-                      '77a8e7246e356009990278e4c6d4f256')
+    'resnext50': ('67a5b30d522ed92f75a1f16eef299d1a',
+                  '62527c363bdd9ec598bed41947b379fc'),
+    'resnext101': ('34fb605428fcc7aa4d62f44404c11509',
+                   '0f678c91647380debd923963594981b3')
 }
 
 

@@ -29,9 +29,8 @@ RESNET_LIST = [resnet.ResNet50,
 RESNETV2_LIST = [resnet_v2.ResNet50V2,
                  resnet_v2.ResNet101V2,
                  resnet_v2.ResNet152V2]
-RESNEXT_LIST = [resnext.ResNeXt50c32,
-                resnext.ResNeXt101c32,
-                resnext.ResNeXt101c64]
+RESNEXT_LIST = [resnext.ResNeXt50,
+                resnext.ResNeXt101]
 MOBILENET_LIST = [(mobilenet.MobileNet, mobilenet, 1024),
                   (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280)]
 DENSENET_LIST = [(densenet.DenseNet121, 1024),

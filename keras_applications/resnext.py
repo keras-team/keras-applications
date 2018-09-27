@@ -109,60 +109,40 @@ def stack(x, filters, blocks, stride1=2, groups=32, name=None):
     return x
 
 
-def ResNeXt50c32(include_top=True,
-                 weights='imagenet',
-                 input_tensor=None,
-                 input_shape=None,
-                 pooling=None,
-                 classes=1000,
-                 **kwargs):
+def ResNeXt50(include_top=True,
+              weights='imagenet',
+              input_tensor=None,
+              input_shape=None,
+              pooling=None,
+              classes=1000,
+              **kwargs):
     def stack_fn(x):
         x = stack(x, 128, 3, stride1=1, name='conv2')
         x = stack(x, 256, 4, name='conv3')
         x = stack(x, 512, 6, name='conv4')
         x = stack(x, 1024, 3, name='conv5')
         return x
-    return ResNet(stack_fn, False, False, 'resnext50c32',
+    return ResNet(stack_fn, False, False, 'resnext50',
                   include_top, weights,
                   input_tensor, input_shape,
                   pooling, classes,
                   **kwargs)
 
 
-def ResNeXt101c32(include_top=True,
-                  weights='imagenet',
-                  input_tensor=None,
-                  input_shape=None,
-                  pooling=None,
-                  classes=1000,
-                  **kwargs):
+def ResNeXt101(include_top=True,
+               weights='imagenet',
+               input_tensor=None,
+               input_shape=None,
+               pooling=None,
+               classes=1000,
+               **kwargs):
     def stack_fn(x):
         x = stack(x, 128, 3, stride1=1, name='conv2')
         x = stack(x, 256, 4, name='conv3')
         x = stack(x, 512, 23, name='conv4')
         x = stack(x, 1024, 3, name='conv5')
         return x
-    return ResNet(stack_fn, False, False, 'resnext101c32',
-                  include_top, weights,
-                  input_tensor, input_shape,
-                  pooling, classes,
-                  **kwargs)
-
-
-def ResNeXt101c64(include_top=True,
-                  weights='imagenet',
-                  input_tensor=None,
-                  input_shape=None,
-                  pooling=None,
-                  classes=1000,
-                  **kwargs):
-    def stack_fn(x):
-        x = stack(x, 256, 3, groups=64, stride1=1, name='conv2')
-        x = stack(x, 512, 4, groups=64, name='conv3')
-        x = stack(x, 1024, 23, groups=64, name='conv4')
-        x = stack(x, 2048, 3, groups=64, name='conv5')
-        return x
-    return ResNet(stack_fn, False, False, 'resnext101c64',
+    return ResNet(stack_fn, False, False, 'resnext101',
                   include_top, weights,
                   input_tensor, input_shape,
                   pooling, classes,
@@ -182,6 +162,5 @@ def preprocess_input(x, **kwargs):
     return imagenet_utils.preprocess_input(x, mode='torch', **kwargs)
 
 
-setattr(ResNeXt50c32, '__doc__', ResNet.__doc__)
-setattr(ResNeXt101c32, '__doc__', ResNet.__doc__)
-setattr(ResNeXt101c64, '__doc__', ResNet.__doc__)
+setattr(ResNeXt50, '__doc__', ResNet.__doc__)
+setattr(ResNeXt101, '__doc__', ResNet.__doc__)
