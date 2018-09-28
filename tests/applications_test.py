@@ -1,5 +1,6 @@
 import pytest
 import random
+import six
 import numpy as np
 
 from keras.applications import densenet
@@ -15,8 +16,6 @@ from keras.applications import resnet50
 from keras.applications import vgg16
 from keras.applications import vgg19
 from keras.applications import xception
-
-from keras.utils.test_utils import keras_test
 from keras.preprocessing import image
 from keras import backend
 
@@ -30,6 +29,22 @@ DENSENET_LIST = [(densenet.DenseNet121, 1024),
                  (densenet.DenseNet201, 1920)]
 NASNET_LIST = [(nasnet.NASNetMobile, 1056),
                (nasnet.NASNetLarge, 4032)]
+
+
+def keras_test(func):
+    """Function wrapper to clean up after TensorFlow tests.
+    # Arguments
+        func: test function to clean up after.
+    # Returns
+        A function wrapping the input function.
+    """
+    @six.wraps(func)
+    def wrapper(*args, **kwargs):
+        output = func(*args, **kwargs)
+        if backend.backend() == 'tensorflow' or backend.backend() == 'cntk':
+            backend.clear_session()
+        return output
+    return wrapper
 
 
 def _get_elephant(target_size):
