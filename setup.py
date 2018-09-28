@@ -29,8 +29,7 @@ setup(name='Keras_Applications',
       download_url='https://github.com/keras-team/'
                    'keras-applications/tarball/1.0.5',
       license='MIT',
-      install_requires=['keras>=2.1.6',
-                        'numpy>=1.9.1',
+      install_requires=['numpy>=1.9.1',
                         'h5py'],
       extras_require={
           'tests': ['pytest',
