@@ -38,7 +38,7 @@ install:
 
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pytest pandas
   - source activate test-environment
-  - pip install --only-binary=numpy,scipy numpy nose scipy matplotlib h5py theano
+  - pip install --only-binary=numpy,scipy numpy nose scipy matplotlib h5py theano keras
   - conda install mkl mkl-service
 
   # set library path
