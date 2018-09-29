@@ -16,7 +16,6 @@ from keras.applications import vgg16
 from keras.applications import vgg19
 from keras.applications import xception
 
-from keras.utils.test_utils import keras_test
 from keras.preprocessing import image
 from keras import backend
 
@@ -82,7 +81,6 @@ def _get_output_shape(model_fn, preprocess_input=None):
             return (model.output_shape, model.predict(x))
 
 
-@keras_test
 def _test_application_basic(app, last_dim=1000, module=None):
     if module is None:
         output_shape = _get_output_shape(lambda: app(weights=None))
@@ -97,14 +95,12 @@ def _test_application_basic(app, last_dim=1000, module=None):
         assert 'African_elephant' in names[:3]
 
 
-@keras_test
 def _test_application_notop(app, last_dim):
     output_shape = _get_output_shape(
         lambda: app(weights=None, include_top=False))
     assert output_shape == (None, None, None, last_dim)
 
 
-@keras_test
 def _test_application_variable_input_channels(app, last_dim):
     if backend.image_data_format() == 'channels_first':
         input_shape = (1, None, None)
@@ -123,7 +119,6 @@ def _test_application_variable_input_channels(app, last_dim):
     assert output_shape == (None, None, None, last_dim)
 
 
-@keras_test
 def _test_app_pooling(app, last_dim):
     output_shape = _get_output_shape(
         lambda: app(weights=None,
