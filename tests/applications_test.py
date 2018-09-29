@@ -2,6 +2,7 @@ import pytest
 import random
 import numpy as np
 
+import keras_applications
 from keras.applications import densenet
 from keras.applications import inception_resnet_v2
 from keras.applications import inception_v3
@@ -15,20 +16,38 @@ from keras.applications import resnet50
 from keras.applications import vgg16
 from keras.applications import vgg19
 from keras.applications import xception
+from keras_applications import resnet
+from keras_applications import resnet_v2
+from keras_applications import resnext
 from keras.preprocessing import image
 from keras import backend
+from keras import layers
+from keras import models
+from keras import utils
 
 from multiprocessing import Process, Queue
 
 
-RESNET_LIST = [resnet.ResNet50,
-               resnet.ResNet101,
-               resnet.ResNet152]
-RESNETV2_LIST = [resnet_v2.ResNet50V2,
-                 resnet_v2.ResNet101V2,
-                 resnet_v2.ResNet152V2]
-RESNEXT_LIST = [resnext.ResNeXt50,
-                resnext.ResNeXt101]
+def keras_modules_injection(base_fun):
+
+    def wrapper(*args, **kwargs):
+        if hasattr(keras_applications, 'get_submodules_from_kwargs'):
+            kwargs['backend'] = backend
+            kwargs['layers'] = layers
+            kwargs['models'] = models
+            kwargs['utils'] = utils
+        return base_fun(*args, **kwargs)
+    return wrapper
+
+
+RESNET_LIST = [keras_modules_injection(resnet.ResNet50),
+               keras_modules_injection(resnet.ResNet101),
+               keras_modules_injection(resnet.ResNet152)]
+RESNETV2_LIST = [keras_modules_injection(resnet_v2.ResNet50V2),
+                 keras_modules_injection(resnet_v2.ResNet101V2),
+                 keras_modules_injection(resnet_v2.ResNet152V2)]
+RESNEXT_LIST = [keras_modules_injection(resnext.ResNeXt50),
+                keras_modules_injection(resnext.ResNeXt101)]
 MOBILENET_LIST = [(mobilenet.MobileNet, mobilenet, 1024),
                   (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280)]
 DENSENET_LIST = [(densenet.DenseNet121, 1024),
