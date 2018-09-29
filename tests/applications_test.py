@@ -15,8 +15,6 @@ from keras.applications import resnet50
 from keras.applications import vgg16
 from keras.applications import vgg19
 from keras.applications import xception
-
-from keras.utils.test_utils import keras_test
 from keras.preprocessing import image
 from keras import backend
 
