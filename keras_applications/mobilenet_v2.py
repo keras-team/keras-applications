@@ -80,14 +80,8 @@ import os
 import warnings
 import numpy as np
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
-from . import imagenet_utils
+from . import correct_pad
+from . import get_submodules_from_kwargs
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
 
@@ -95,8 +89,13 @@ from .imagenet_utils import _obtain_input_shape
 BASE_WEIGHT_PATH = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
                     'releases/download/v1.1/')
 
+backend = None
+layers = None
+models = None
+keras_utils = None
 
-def preprocess_input(x):
+
+def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     This function applies the "Inception" preprocessing which converts
@@ -137,7 +136,8 @@ def MobileNetV2(input_shape=None,
                 weights='imagenet',
                 input_tensor=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     """Instantiates the MobileNetV2 architecture.
 
     # Arguments
@@ -193,6 +193,8 @@ def MobileNetV2(input_shape=None,
             or invalid input shape or invalid depth_multiplier, alpha,
             rows when weights='imagenet'
     """
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
 
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
@@ -218,12 +220,12 @@ def MobileNetV2(input_shape=None,
                                  'is not type input_tensor')
         if is_input_t_tensor:
             if backend.image_data_format == 'channels_first':
-                if input_tensor._keras_shape[1] != input_shape[1]:
+                if backend.int_shape(input_tensor)[1] != input_shape[1]:
                     raise ValueError('input_shape: ', input_shape,
                                      'and input_tensor: ', input_tensor,
                                      'do not meet the same shape requirements')
             else:
-                if input_tensor._keras_shape[2] != input_shape[1]:
+                if backend.int_shape(input_tensor)[2] != input_shape[1]:
                     raise ValueError('input_shape: ', input_shape,
                                      'and input_tensor: ', input_tensor,
                                      'do not meet the same shape requirements')
@@ -245,11 +247,11 @@ def MobileNetV2(input_shape=None,
             default_size = 224
         elif input_shape is None and backend.is_keras_tensor(input_tensor):
             if backend.image_data_format() == 'channels_first':
-                rows = input_tensor._keras_shape[2]
-                cols = input_tensor._keras_shape[3]
+                rows = backend.int_shape(input_tensor)[2]
+                cols = backend.int_shape(input_tensor)[3]
             else:
-                rows = input_tensor._keras_shape[1]
-                cols = input_tensor._keras_shape[2]
+                rows = backend.int_shape(input_tensor)[1]
+                cols = backend.int_shape(input_tensor)[2]
 
             if rows == cols and rows in [96, 128, 160, 192, 224]:
                 default_size = rows
@@ -335,12 +337,14 @@ def MobileNetV2(input_shape=None,
             img_input = input_tensor
 
     first_block_filters = _make_divisible(32 * alpha, 8)
+    x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
+                             name='Conv1_pad')(img_input)
     x = layers.Conv2D(first_block_filters,
                       kernel_size=3,
                       strides=(2, 2),
-                      padding='same',
+                      padding='valid',
                       use_bias=False,
-                      name='Conv1')(img_input)
+                      name='Conv1')(x)
     x = layers.BatchNormalization(
         epsilon=1e-3, momentum=0.999, name='bn_Conv1')(x)
     x = layers.ReLU(6., name='Conv1_relu')(x)
@@ -452,7 +456,7 @@ def MobileNetV2(input_shape=None,
 
 
 def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
-    in_channels = inputs._keras_shape[-1]
+    in_channels = backend.int_shape(inputs)[-1]
     pointwise_conv_filters = int(filters * alpha)
     pointwise_filters = _make_divisible(pointwise_conv_filters, 8)
     x = inputs
@@ -474,11 +478,14 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
         prefix = 'expanded_conv_'
 
     # Depthwise
+    if stride == 2:
+        x = layers.ZeroPadding2D(padding=correct_pad(backend, x, 3),
+                                 name=prefix + 'pad')(x)
     x = layers.DepthwiseConv2D(kernel_size=3,
                                strides=stride,
                                activation=None,
                                use_bias=False,
-                               padding='same',
+                               padding='same' if stride == 1 else 'valid',
                                name=prefix + 'depthwise')(x)
     x = layers.BatchNormalization(epsilon=1e-3,
                                   momentum=0.999,

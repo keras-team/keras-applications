@@ -40,13 +40,8 @@ from __future__ import division
 import os
 import warnings
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import correct_pad
+from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
@@ -57,6 +52,11 @@ NASNET_MOBILE_WEIGHT_PATH = BASE_WEIGHTS_PATH + 'NASNet-mobile.h5'
 NASNET_MOBILE_WEIGHT_PATH_NO_TOP = BASE_WEIGHTS_PATH + 'NASNet-mobile-no-top.h5'
 NASNET_LARGE_WEIGHT_PATH = BASE_WEIGHTS_PATH + 'NASNet-large.h5'
 NASNET_LARGE_WEIGHT_PATH_NO_TOP = BASE_WEIGHTS_PATH + 'NASNet-large-no-top.h5'
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 def NASNet(input_shape=None,
@@ -70,7 +70,8 @@ def NASNet(input_shape=None,
            input_tensor=None,
            pooling=None,
            classes=1000,
-           default_size=None):
+           default_size=None,
+           **kwargs):
     '''Instantiates a NASNet model.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -133,6 +134,9 @@ def NASNet(input_shape=None,
         ValueError: In case of invalid argument for `weights`,
             invalid input shape or invalid `penultimate_filters` value.
     '''
+    global backend, layers, models, keras_utils
+    backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
+
     if not (weights in {'imagenet', None} or os.path.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '
@@ -300,7 +304,8 @@ def NASNetLarge(input_shape=None,
                 weights='imagenet',
                 input_tensor=None,
                 pooling=None,
-                classes=1000):
+                classes=1000,
+                **kwargs):
     '''Instantiates a NASNet model in ImageNet mode.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -357,7 +362,8 @@ def NASNetLarge(input_shape=None,
                   input_tensor=input_tensor,
                   pooling=pooling,
                   classes=classes,
-                  default_size=331)
+                  default_size=331,
+                  **kwargs)
 
 
 def NASNetMobile(input_shape=None,
@@ -365,7 +371,8 @@ def NASNetMobile(input_shape=None,
                  weights='imagenet',
                  input_tensor=None,
                  pooling=None,
-                 classes=1000):
+                 classes=1000,
+                 **kwargs):
     '''Instantiates a Mobile NASNet model in ImageNet mode.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -422,7 +429,8 @@ def NASNetMobile(input_shape=None,
                   input_tensor=input_tensor,
                   pooling=pooling,
                   classes=classes,
-                  default_size=224)
+                  default_size=224,
+                  **kwargs)
 
 
 def _separable_conv_block(ip, filters,
@@ -445,10 +453,17 @@ def _separable_conv_block(ip, filters,
 
     with backend.name_scope('separable_conv_block_%s' % block_id):
         x = layers.Activation('relu')(ip)
+        if strides == (2, 2):
+            x = layers.ZeroPadding2D(
+                padding=correct_pad(backend, x, kernel_size),
+                name='separable_conv_1_pad_%s' % block_id)(x)
+            conv_pad = 'valid'
+        else:
+            conv_pad = 'same'
         x = layers.SeparableConv2D(filters, kernel_size,
                                    strides=strides,
                                    name='separable_conv_1_%s' % block_id,
-                                   padding='same', use_bias=False,
+                                   padding=conv_pad, use_bias=False,
                                    kernel_initializer='he_normal')(x)
         x = layers.BatchNormalization(
             axis=channel_dim,
@@ -662,6 +677,9 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             momentum=0.9997,
             epsilon=1e-3,
             name='reduction_bn_1_%s' % block_id)(h)
+        h3 = layers.ZeroPadding2D(
+            padding=correct_pad(backend, h, 3),
+            name='reduction_pad_1_%s' % block_id)(h)
 
         with backend.name_scope('block_1'):
             x1_1 = _separable_conv_block(
@@ -678,8 +696,8 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             x2_1 = layers.MaxPooling2D(
                 (3, 3),
                 strides=(2, 2),
-                padding='same',
-                name='reduction_left2_%s' % block_id)(h)
+                padding='valid',
+                name='reduction_left2_%s' % block_id)(h3)
             x2_2 = _separable_conv_block(
                 p, filters, (7, 7),
                 strides=(2, 2),
@@ -690,8 +708,8 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             x3_1 = layers.AveragePooling2D(
                 (3, 3),
                 strides=(2, 2),
-                padding='same',
-                name='reduction_left3_%s' % block_id)(h)
+                padding='valid',
+                name='reduction_left3_%s' % block_id)(h3)
             x3_2 = _separable_conv_block(
                 p, filters, (5, 5),
                 strides=(2, 2),
@@ -713,8 +731,8 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
             x5_2 = layers.MaxPooling2D(
                 (3, 3),
                 strides=(2, 2),
-                padding='same',
-                name='reduction_right5_%s' % block_id)(h)
+                padding='valid',
+                name='reduction_right5_%s' % block_id)(h3)
             x5 = layers.add([x5_1, x5_2], name='reduction_add4_%s' % block_id)
 
         x = layers.concatenate(
@@ -724,7 +742,7 @@ def _reduction_a_cell(ip, p, filters, block_id=None):
         return x, ip
 
 
-def preprocess_input(x):
+def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
     # Arguments
@@ -733,4 +751,4 @@ def preprocess_input(x):
     # Returns
         Preprocessed array.
     """
-    return imagenet_utils.preprocess_input(x, mode='tf')
+    return imagenet_utils.preprocess_input(x, mode='tf', **kwargs)
