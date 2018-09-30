@@ -190,10 +190,10 @@ def NASNet(input_shape=None,
         else:
             img_input = input_tensor
 
-    if penultimate_filters % 24 != 0:
+    if penultimate_filters % (24 * (filter_multiplier ** 2)) != 0:
         raise ValueError(
-            'For NASNet-A models, the value of `penultimate_filters` '
-            'needs to be divisible by 24. Current value: %d' %
+            'For NASNet-A models, the `penultimate_filters` must be a multiple '
+            'of 24 * (`filter_multiplier` ** 2). Current value: %d' %
             penultimate_filters)
 
     channel_dim = 1 if backend.image_data_format() == 'channels_first' else -1
