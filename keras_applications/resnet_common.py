@@ -27,14 +27,14 @@ from __future__ import print_function
 
 import os
 
-from . import get_keras_submodule
-
-backend = get_keras_submodule('backend')
-layers = get_keras_submodule('layers')
-models = get_keras_submodule('models')
-keras_utils = get_keras_submodule('utils')
-
+from . import get_submodules_from_kwargs
 from .imagenet_utils import _obtain_input_shape
+
+
+backend = None
+layers = None
+models = None
+keras_utils = None
 
 
 BASE_WEIGHTS_PATH = (
