@@ -57,6 +57,13 @@ DENSENET_LIST = [(densenet.DenseNet121, 1024),
 NASNET_LIST = [(nasnet.NASNetMobile, 1056),
                (nasnet.NASNetLarge, 4032)]
 
+resnet.decode_predictions = keras_modules_injection(resnet.decode_predictions)
+resnet_v2.decode_predictions = keras_modules_injection(resnet_v2.decode_predictions)
+resnext.decode_predictions = keras_modules_injection(resnext.decode_predictions)
+resnet.preprocess_input = keras_modules_injection(resnet.preprocess_input)
+resnet_v2.preprocess_input = keras_modules_injection(resnet_v2.preprocess_input)
+resnext.preprocess_input = keras_modules_injection(resnext.preprocess_input)
+
 
 def keras_test(func):
     """Function wrapper to clean up after TensorFlow tests.
