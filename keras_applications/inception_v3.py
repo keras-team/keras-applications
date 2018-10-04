@@ -175,7 +175,7 @@ def InceptionV3(include_top=True,
     x = conv2d_bn(x, 192, 3, 3, padding='valid')
     x = layers.MaxPooling2D((3, 3), strides=(2, 2))(x)
 
-    # mixed 0, 1, 2: 35 x 35 x 256
+    # mixed 0: 35 x 35 x 256
     branch1x1 = conv2d_bn(x, 64, 1, 1)
 
     branch5x5 = conv2d_bn(x, 48, 1, 1)
@@ -194,7 +194,7 @@ def InceptionV3(include_top=True,
         axis=channel_axis,
         name='mixed0')
 
-    # mixed 1: 35 x 35 x 256
+    # mixed 1: 35 x 35 x 288
     branch1x1 = conv2d_bn(x, 64, 1, 1)
 
     branch5x5 = conv2d_bn(x, 48, 1, 1)
@@ -213,7 +213,7 @@ def InceptionV3(include_top=True,
         axis=channel_axis,
         name='mixed1')
 
-    # mixed 2: 35 x 35 x 256
+    # mixed 2: 35 x 35 x 288
     branch1x1 = conv2d_bn(x, 64, 1, 1)
 
     branch5x5 = conv2d_bn(x, 48, 1, 1)
