@@ -150,7 +150,7 @@ def InceptionV3(include_top=True,
         default_size=299,
         min_size=75,
         data_format=backend.image_data_format(),
-        require_flatten=False,
+        require_flatten=include_top,
         weights=weights)
 
     if input_tensor is None:
