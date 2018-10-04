@@ -17,9 +17,6 @@ from keras.applications import resnet50
 from keras.applications import vgg16
 from keras.applications import vgg19
 from keras.applications import xception
-from keras_applications import resnet
-from keras_applications import resnet_v2
-from keras_applications import resnext
 from keras.preprocessing import image
 from keras import backend
 from keras import layers
@@ -41,14 +38,25 @@ def keras_modules_injection(base_fun):
     return wrapper
 
 
-RESNET_LIST = [keras_modules_injection(resnet.ResNet50),
-               keras_modules_injection(resnet.ResNet101),
-               keras_modules_injection(resnet.ResNet152)]
-RESNETV2_LIST = [keras_modules_injection(resnet_v2.ResNet50V2),
-                 keras_modules_injection(resnet_v2.ResNet101V2),
-                 keras_modules_injection(resnet_v2.ResNet152V2)]
-RESNEXT_LIST = [keras_modules_injection(resnext.ResNeXt50),
-                keras_modules_injection(resnext.ResNeXt101)]
+for (name, module) in [('resnet', keras_applications.resnet),
+                       ('resnet_v2', keras_applications.resnet_v2),
+                       ('resnext', keras_applications.resnext)]:
+    module.decode_predictions = keras_modules_injection(module.decode_predictions)
+    module.preprocess_input = keras_modules_injection(module.preprocess_input)
+    for app in dir(module):
+        if app[0].isupper():
+            setattr(module, app, keras_modules_injection(getattr(module, app)))
+    setattr(keras_applications, name, module)
+
+
+RESNET_LIST = [keras_applications.resnet.ResNet50,
+               keras_applications.resnet.ResNet101,
+               keras_applications.resnet.ResNet152]
+RESNETV2_LIST = [keras_applications.resnet_v2.ResNet50V2,
+                 keras_applications.resnet_v2.ResNet101V2,
+                 keras_applications.resnet_v2.ResNet152V2]
+RESNEXT_LIST = [keras_applications.resnext.ResNeXt50,
+                keras_applications.resnext.ResNeXt101]
 MOBILENET_LIST = [(mobilenet.MobileNet, mobilenet, 1024),
                   (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280)]
 DENSENET_LIST = [(densenet.DenseNet121, 1024),
@@ -56,13 +64,6 @@ DENSENET_LIST = [(densenet.DenseNet121, 1024),
                  (densenet.DenseNet201, 1920)]
 NASNET_LIST = [(nasnet.NASNetMobile, 1056),
                (nasnet.NASNetLarge, 4032)]
-
-resnet.decode_predictions = keras_modules_injection(resnet.decode_predictions)
-resnet_v2.decode_predictions = keras_modules_injection(resnet_v2.decode_predictions)
-resnext.decode_predictions = keras_modules_injection(resnext.decode_predictions)
-resnet.preprocess_input = keras_modules_injection(resnet.preprocess_input)
-resnet_v2.preprocess_input = keras_modules_injection(resnet_v2.preprocess_input)
-resnext.preprocess_input = keras_modules_injection(resnext.preprocess_input)
 
 
 def keras_test(func):
@@ -183,7 +184,7 @@ def _test_app_pooling(app, last_dim):
 
 def test_resnet():
     app = random.choice(RESNET_LIST)
-    module = resnet
+    module = keras_applications.resnet
     last_dim = 2048
     _test_application_basic(app, module=module)
     _test_application_notop(app, last_dim)
@@ -193,7 +194,7 @@ def test_resnet():
 
 def test_resnetv2():
     app = random.choice(RESNETV2_LIST)
-    module = resnet_v2
+    module = keras_applications.resnet_v2
     last_dim = 2048
     _test_application_basic(app, module=module)
     _test_application_notop(app, last_dim)
@@ -203,7 +204,7 @@ def test_resnetv2():
 
 def test_resnext():
     app = random.choice(RESNEXT_LIST)
-    module = resnext
+    module = keras_applications.resnext
     _test_application_basic(app, module=module)
 
 
