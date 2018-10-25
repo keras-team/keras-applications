@@ -205,10 +205,10 @@ def InceptionResNetV2(include_top=True,
         pooling: Optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model will be
-                the 4D tensor output of the last convolutional layer.
+                the 4D tensor output of the last convolutional block.
             - `'avg'` means that global average pooling
                 will be applied to the output of the
-                last convolutional layer, and thus
+                last convolutional block, and thus
                 the output of the model will be a 2D tensor.
             - `'max'` means that global max pooling will be applied.
         classes: optional number of classes to classify images
