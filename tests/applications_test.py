@@ -3,6 +3,7 @@ import random
 import six
 import numpy as np
 
+import keras_applications
 from keras.applications import densenet
 from keras.applications import inception_resnet_v2
 from keras.applications import inception_v3
@@ -18,10 +19,44 @@ from keras.applications import vgg19
 from keras.applications import xception
 from keras.preprocessing import image
 from keras import backend
+from keras import layers
+from keras import models
+from keras import utils
 
 from multiprocessing import Process, Queue
 
 
+def keras_modules_injection(base_fun):
+
+    def wrapper(*args, **kwargs):
+        if hasattr(keras_applications, 'get_submodules_from_kwargs'):
+            kwargs['backend'] = backend
+            kwargs['layers'] = layers
+            kwargs['models'] = models
+            kwargs['utils'] = utils
+        return base_fun(*args, **kwargs)
+    return wrapper
+
+
+for (name, module) in [('resnet', keras_applications.resnet),
+                       ('resnet_v2', keras_applications.resnet_v2),
+                       ('resnext', keras_applications.resnext)]:
+    module.decode_predictions = keras_modules_injection(module.decode_predictions)
+    module.preprocess_input = keras_modules_injection(module.preprocess_input)
+    for app in dir(module):
+        if app[0].isupper():
+            setattr(module, app, keras_modules_injection(getattr(module, app)))
+    setattr(keras_applications, name, module)
+
+
+RESNET_LIST = [keras_applications.resnet.ResNet50,
+               keras_applications.resnet.ResNet101,
+               keras_applications.resnet.ResNet152]
+RESNETV2_LIST = [keras_applications.resnet_v2.ResNet50V2,
+                 keras_applications.resnet_v2.ResNet101V2,
+                 keras_applications.resnet_v2.ResNet152V2]
+RESNEXT_LIST = [keras_applications.resnext.ResNeXt50,
+                keras_applications.resnext.ResNeXt101]
 MOBILENET_LIST = [(mobilenet.MobileNet, mobilenet, 1024),
                   (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280)]
 DENSENET_LIST = [(densenet.DenseNet121, 1024),
@@ -147,14 +182,30 @@ def _test_app_pooling(app, last_dim):
     assert output_shape == (None, last_dim)
 
 
-def test_resnet50():
-    app = resnet50.ResNet50
-    module = resnet50
+def test_resnet():
+    app = random.choice(RESNET_LIST)
+    module = keras_applications.resnet
     last_dim = 2048
     _test_application_basic(app, module=module)
     _test_application_notop(app, last_dim)
     _test_application_variable_input_channels(app, last_dim)
     _test_app_pooling(app, last_dim)
+
+
+def test_resnetv2():
+    app = random.choice(RESNETV2_LIST)
+    module = keras_applications.resnet_v2
+    last_dim = 2048
+    _test_application_basic(app, module=module)
+    _test_application_notop(app, last_dim)
+    _test_application_variable_input_channels(app, last_dim)
+    _test_app_pooling(app, last_dim)
+
+
+def test_resnext():
+    app = random.choice(RESNEXT_LIST)
+    module = keras_applications.resnext
+    _test_application_basic(app, module=module)
 
 
 def test_vgg():
