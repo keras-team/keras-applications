@@ -110,7 +110,10 @@ def preprocess_input(x, **kwargs):
     """
     x /= 128.
     x -= 1.
-    return x.astype(np.float32)
+    if isinstance(x, np.ndarray):
+        return x.astype(np.float32)
+    else:
+        return x
 
 
 # This function is taken from the original tf repo.
