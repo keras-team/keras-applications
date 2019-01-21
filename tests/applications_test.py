@@ -269,8 +269,8 @@ def test_nasnet():
     app, last_dim = NASNET_LIST[0]  # NASNetLarge is too heavy to test on Travis
     module = nasnet
     _test_application_basic(app, module=module)
-    _test_application_notop(app, last_dim)
-    _test_application_variable_input_channels(app, last_dim)
+    # _test_application_notop(app, last_dim)
+    # _test_application_variable_input_channels(app, last_dim)
     _test_app_pooling(app, last_dim)
 
 
