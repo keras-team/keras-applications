@@ -286,7 +286,7 @@ def _obtain_input_shape(input_shape,
     if weights == 'imagenet' and require_flatten:
         if input_shape is not None:
             if input_shape != default_shape:
-                raise ValueError('When setting`include_top=True` '
+                raise ValueError('When setting `include_top=True` '
                                  'and loading `imagenet` weights, '
                                  '`input_shape` should be ' +
                                  str(default_shape) + '.')
