@@ -82,6 +82,7 @@ import numpy as np
 
 from . import correct_pad
 from . import get_submodules_from_kwargs
+from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
 
@@ -98,19 +99,13 @@ keras_utils = None
 def preprocess_input(x, **kwargs):
     """Preprocesses a numpy array encoding a batch of images.
 
-    This function applies the "Inception" preprocessing which converts
-    the RGB values from [0, 255] to [-1, 1]. Note that this preprocessing
-    function is different from `imagenet_utils.preprocess_input()`.
-
     # Arguments
         x: a 4D numpy array consists of RGB values within [0, 255].
 
     # Returns
         Preprocessed array.
     """
-    x /= 128.
-    x -= 1.
-    return x.astype(np.float32)
+    return imagenet_utils.preprocess_input(x, mode='tf', **kwargs)
 
 
 # This function is taken from the original tf repo.
