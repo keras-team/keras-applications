@@ -105,15 +105,16 @@ def MobileNet(input_shape=None,
             It should have exactly 3 inputs channels,
             and width and height should be no smaller than 32.
             E.g. `(200, 200, 3)` would be one valid value.
-        alpha: controls the width of the network.
+        alpha: controls the width of the network. This is known as the
+            width multiplier in the MobileNet paper.
             - If `alpha` < 1.0, proportionally decreases the number
                 of filters in each layer.
             - If `alpha` > 1.0, proportionally increases the number
                 of filters in each layer.
             - If `alpha` = 1, default number of filters from the paper
                  are used at each layer.
-        depth_multiplier: depth multiplier for depthwise convolution
-            (also called the resolution multiplier)
+        depth_multiplier: depth multiplier for depthwise convolution. This
+            is called the resolution multiplier in the MobileNet paper.
         dropout: dropout rate
         include_top: whether to include the fully-connected
             layer at the top of the network.

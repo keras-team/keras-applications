@@ -126,7 +126,6 @@ def _make_divisible(v, divisor, min_value=None):
 
 def MobileNetV2(input_shape=None,
                 alpha=1.0,
-                depth_multiplier=1,
                 include_top=True,
                 weights='imagenet',
                 input_tensor=None,
@@ -147,15 +146,14 @@ def MobileNetV2(input_shape=None,
             do not match then we will throw an error.
             E.g. `(160, 160, 3)` would be one valid value.
         alpha: controls the width of the network. This is known as the
-        width multiplier in the MobileNetV2 paper.
+        width multiplier in the MobileNetV2 paper, but the name is kept for
+        consistency with MobileNetV1 in Keras.
             - If `alpha` < 1.0, proportionally decreases the number
                 of filters in each layer.
             - If `alpha` > 1.0, proportionally increases the number
                 of filters in each layer.
             - If `alpha` = 1, default number of filters from the paper
                  are used at each layer.
-        depth_multiplier: depth multiplier for depthwise convolution
-            (also called the resolution multiplier)
         include_top: whether to include the fully-connected
             layer at the top of the network.
         weights: one of `None` (random initialization),
@@ -185,8 +183,8 @@ def MobileNetV2(input_shape=None,
 
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid input shape or invalid depth_multiplier, alpha,
-            rows when weights='imagenet'
+            or invalid input shape or invalid alpha, rows when
+            weights='imagenet'
     """
     global backend, layers, models, keras_utils
     backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
@@ -286,10 +284,6 @@ def MobileNetV2(input_shape=None,
     cols = input_shape[col_axis]
 
     if weights == 'imagenet':
-        if depth_multiplier != 1:
-            raise ValueError('If imagenet weights are being loaded, '
-                             'depth multiplier must be 1')
-
         if alpha not in [0.35, 0.50, 0.75, 1.0, 1.3, 1.4]:
             raise ValueError('If imagenet weights are being loaded, '
                              'alpha can be one of `0.35`, `0.50`, `0.75`, '
