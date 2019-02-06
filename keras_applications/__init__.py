@@ -56,13 +56,19 @@ def get_keras_submodule(name):
 
 
 def get_submodules_from_kwargs(kwargs):
-    backend = kwargs.get('backend', _KERAS_BACKEND)
-    layers = kwargs.get('layers', _KERAS_LAYERS)
-    models = kwargs.get('models', _KERAS_MODELS)
-    utils = kwargs.get('utils', _KERAS_UTILS)
-    for key in kwargs.keys():
-        if key not in ['backend', 'layers', 'models', 'utils']:
-            raise TypeError('Invalid keyword argument: %s', key)
+    submodules = ['backend', 'layers', 'models', 'utils']
+    if not kwargs:
+        backend, layers, models, utils = [__import__('keras.' + submodule,
+                                          fromlist=submodule)
+                                          for submodule in submodules]
+    else:
+        backend = kwargs.get('backend', _KERAS_BACKEND)
+        layers = kwargs.get('layers', _KERAS_LAYERS)
+        models = kwargs.get('models', _KERAS_MODELS)
+        utils = kwargs.get('utils', _KERAS_UTILS)
+        for key in kwargs.keys():
+            if key not in submodules:
+                raise TypeError('Invalid keyword argument: %s', key)
     return backend, layers, models, utils
 
 
@@ -92,7 +98,7 @@ def correct_pad(backend, inputs, kernel_size):
     return ((correct[0] - adjust[0], correct[0]),
             (correct[1] - adjust[1], correct[1]))
 
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 
 
 from . import vgg16
