@@ -11,8 +11,8 @@ import numpy as np
 from . import get_submodules_from_kwargs
 
 CLASS_INDEX = None
-CLASS_INDEX_PATH = ('https://s3.amazonaws.com/deep-learning-models/'
-                    'image-models/imagenet_class_index.json')
+CLASS_INDEX_PATH = ('https://storage.googleapis.com/download.tensorflow.org/'
+                    'data/imagenet_class_index.json')
 
 # Global tensor of imagenet mean for preprocessing symbolic inputs
 _IMAGENET_MEAN = None
