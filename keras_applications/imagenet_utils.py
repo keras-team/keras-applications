@@ -14,9 +14,6 @@ CLASS_INDEX = None
 CLASS_INDEX_PATH = ('https://storage.googleapis.com/download.tensorflow.org/'
                     'data/imagenet_class_index.json')
 
-# Global tensor of imagenet mean for preprocessing symbolic inputs
-_IMAGENET_MEAN = None
-
 
 def _preprocess_numpy_input(x, data_format, mode, **kwargs):
     """Preprocesses a Numpy array encoding a batch of images.
@@ -113,7 +110,6 @@ def _preprocess_symbolic_input(x, data_format, mode, **kwargs):
     # Returns
         Preprocessed tensor.
     """
-    global _IMAGENET_MEAN
 
     backend, _, _, _ = get_submodules_from_kwargs(kwargs)
 
@@ -139,16 +135,15 @@ def _preprocess_symbolic_input(x, data_format, mode, **kwargs):
         mean = [103.939, 116.779, 123.68]
         std = None
 
-    if _IMAGENET_MEAN is None:
-        _IMAGENET_MEAN = backend.constant(-np.array(mean))
+    IMAGENET_MEAN = backend.constant(-np.array(mean))
 
     # Zero-center by mean pixel
-    if backend.dtype(x) != backend.dtype(_IMAGENET_MEAN):
+    if backend.dtype(x) != backend.dtype(IMAGENET_MEAN):
         x = backend.bias_add(
-            x, backend.cast(_IMAGENET_MEAN, backend.dtype(x)),
+            x, backend.cast(IMAGENET_MEAN, backend.dtype(x)),
             data_format=data_format)
     else:
-        x = backend.bias_add(x, _IMAGENET_MEAN, data_format)
+        x = backend.bias_add(x, IMAGENET_MEAN, data_format)
     if std is not None:
         x /= std
     return x
