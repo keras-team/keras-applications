@@ -290,7 +290,7 @@ def DenseNet(blocks,
                     DENSENET201_WEIGHT_PATH_NO_TOP,
                     cache_subdir='models',
                     file_hash='c13680b51ded0fb44dff2d8f86ac8bb1')
-        model.load_weights(weights_path)
+        model.load_weights(weights_path, by_name=True)
     elif weights is not None:
         model.load_weights(weights)
 

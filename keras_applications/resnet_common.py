@@ -408,7 +408,7 @@ def ResNet(stack_fn,
                                             BASE_WEIGHTS_PATH + file_name,
                                             cache_subdir='models',
                                             file_hash=file_hash)
-        model.load_weights(weights_path)
+        model.load_weights(weights_path, by_name=True)
     elif weights is not None:
         model.load_weights(weights)
 

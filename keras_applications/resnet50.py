@@ -288,7 +288,7 @@ def ResNet50(include_top=True,
                 WEIGHTS_PATH_NO_TOP,
                 cache_subdir='models',
                 md5_hash='a268eb855778b3df3c7506639542a6af')
-        model.load_weights(weights_path)
+        model.load_weights(weights_path, by_name=True)
         if backend.backend() == 'theano':
             keras_utils.convert_all_kernels_in_model(model)
     elif weights is not None:

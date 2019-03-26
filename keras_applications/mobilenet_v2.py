@@ -435,7 +435,7 @@ def MobileNetV2(input_shape=None,
             weigh_path = BASE_WEIGHT_PATH + model_name
             weights_path = keras_utils.get_file(
                 model_name, weigh_path, cache_subdir='models')
-        model.load_weights(weights_path)
+        model.load_weights(weights_path, by_name=True)
     elif weights is not None:
         model.load_weights(weights)
 

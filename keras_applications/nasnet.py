@@ -271,7 +271,7 @@ def NASNet(input_shape=None,
                     NASNET_MOBILE_WEIGHT_PATH_NO_TOP,
                     cache_subdir='models',
                     file_hash='1ed92395b5b598bdda52abe5c0dbfd63')
-            model.load_weights(weights_path)
+            model.load_weights(weights_path, by_name=True)
         elif default_size == 331:  # large version
             if include_top:
                 weights_path = keras_utils.get_file(
@@ -285,7 +285,7 @@ def NASNet(input_shape=None,
                     NASNET_LARGE_WEIGHT_PATH_NO_TOP,
                     cache_subdir='models',
                     file_hash='d81d89dc07e6e56530c4e77faddd61b5')
-            model.load_weights(weights_path)
+            model.load_weights(weights_path, by_name=True)
         else:
             raise ValueError(
                 'ImageNet weights can only be loaded with NASNetLarge'

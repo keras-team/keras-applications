@@ -361,7 +361,7 @@ def InceptionResNetV2(include_top=True,
                 BASE_WEIGHT_URL + fname,
                 cache_subdir='models',
                 file_hash='d19885ff4a710c122648d3b5c3b684e4')
-        model.load_weights(weights_path)
+        model.load_weights(weights_path, by_name=True)
     elif weights is not None:
         model.load_weights(weights)
 
