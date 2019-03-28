@@ -208,12 +208,6 @@ def MobileNet(input_shape=None,
                 warnings.warn('MobileNet shape is undefined.'
                               ' Weights for input shape '
                               '(224, 224) will be loaded.')
-            else:
-                raise ValueError('If imagenet weights are being loaded, '
-                                 'input must have a static square shape '
-                                 '(one of (128, 128), (160, 160), '
-                                 '(192, 192), or (224, 224)). '
-                                 'Input shape provided = %s' % (input_shape,))
 
     if backend.image_data_format() != 'channels_last':
         warnings.warn('The MobileNet family of models is only available '
