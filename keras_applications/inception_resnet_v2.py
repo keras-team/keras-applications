@@ -11,7 +11,7 @@ https://github.com/tensorflow/models/tree/master/research/slim#pre-trained-model
 
 # Reference
 - [Inception-v4, Inception-ResNet and the Impact of
-   Residual Connections on Learning](https://arxiv.org/abs/1602.07261)
+   Residual Connections on Learning](https://arxiv.org/abs/1602.07261) (AAAI 2017)
 
 """
 from __future__ import absolute_import

@@ -66,7 +66,7 @@ from TensorFlow checkpoints found [here]
 
 This file contains building code for MobileNetV2, based on
 [MobileNetV2: Inverted Residuals and Linear Bottlenecks]
-(https://arxiv.org/abs/1801.04381)
+(https://arxiv.org/abs/1801.04381) (CVPR 2018)
 
 Tests comparing this model to the existing Tensorflow model can be
 found at [mobilenet_v2_keras]

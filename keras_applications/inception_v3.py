@@ -7,7 +7,7 @@ and that the input preprocessing function is also different (same as Xception).
 # Reference
 
 - [Rethinking the Inception Architecture for Computer Vision](
-    http://arxiv.org/abs/1512.00567)
+    http://arxiv.org/abs/1512.00567) (CVPR 2016)
 
 """
 from __future__ import absolute_import

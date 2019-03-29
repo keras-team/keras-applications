@@ -3,7 +3,7 @@
 # Reference:
 
 - [Deep Residual Learning for Image Recognition](
-    https://arxiv.org/abs/1512.03385)
+    https://arxiv.org/abs/1512.03385) (CVPR 2016 Best Paper Award)
 
 Adapted from code contributed by BigMoyan.
 """

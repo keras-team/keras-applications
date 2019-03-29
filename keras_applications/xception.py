@@ -11,7 +11,7 @@ is also different (same as Inception V3).
 # Reference
 
 - [Xception: Deep Learning with Depthwise Separable Convolutions](
-    https://arxiv.org/abs/1610.02357)
+    https://arxiv.org/abs/1610.02357) (CVPR 2017)
 
 """
 from __future__ import absolute_import

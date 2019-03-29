@@ -24,7 +24,7 @@ https://github.com/tensorflow/models/tree/master/research/slim/nets/nasnet
 # References
 
  - [Learning Transferable Architectures for Scalable Image Recognition]
-    (https://arxiv.org/abs/1707.07012)
+    (https://arxiv.org/abs/1707.07012) (CVPR 2018)
 
 This model is based on the following implementations:
 
