@@ -316,7 +316,9 @@ def MobileNetV2(input_shape=None,
                       use_bias=False,
                       name='Conv1')(x)
     x = layers.BatchNormalization(axis=channel_axis,
-        epsilon=1e-3, momentum=0.999, name='bn_Conv1')(x)
+                                  epsilon=1e-3,
+                                  momentum=0.999,
+                                  name='bn_Conv1')(x)
     x = layers.ReLU(6., name='Conv1_relu')(x)
 
     x = _inverted_res_block(x, filters=16, alpha=alpha, stride=1,
@@ -470,7 +472,9 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
                       activation=None,
                       name=prefix + 'project')(x)
     x = layers.BatchNormalization(axis=channel_axis,
-        epsilon=1e-3, momentum=0.999, name=prefix + 'project_BN')(x)
+                                  epsilon=1e-3,
+                                  momentum=0.999,
+                                  name=prefix + 'project_BN')(x)
 
     if in_channels == pointwise_filters and stride == 1:
         return layers.Add(name=prefix + 'add')([inputs, x])
