@@ -296,21 +296,6 @@ def MobileNetV2(input_shape=None,
                               ' Weights for input shape'
                               '(224, 224) will be loaded.')
 
-    if backend.image_data_format() != 'channels_last':
-        warnings.warn('The MobileNet family of models is only available '
-                      'for the input data format "channels_last" '
-                      '(width, height, channels). '
-                      'However your settings specify the default '
-                      'data format "channels_first" (channels, width, height).'
-                      ' You should set `image_data_format="channels_last"` '
-                      'in your Keras config located at ~/.keras/keras.json. '
-                      'The model being returned right now will expect inputs '
-                      'to follow the "channels_last" data format.')
-        backend.set_image_data_format('channels_last')
-        old_data_format = 'channels_first'
-    else:
-        old_data_format = None
-
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape)
     else:
@@ -318,6 +303,8 @@ def MobileNetV2(input_shape=None,
             img_input = layers.Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
+
+    channel_axis = 1 if backend.image_data_format() == 'channels_first' else -1
 
     first_block_filters = _make_divisible(32 * alpha, 8)
     x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
@@ -328,8 +315,10 @@ def MobileNetV2(input_shape=None,
                       padding='valid',
                       use_bias=False,
                       name='Conv1')(x)
-    x = layers.BatchNormalization(
-        epsilon=1e-3, momentum=0.999, name='bn_Conv1')(x)
+    x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
+                                  momentum=0.999,
+                                  name='bn_Conv1')(x)
     x = layers.ReLU(6., name='Conv1_relu')(x)
 
     x = _inverted_res_block(x, filters=16, alpha=alpha, stride=1,
@@ -385,7 +374,8 @@ def MobileNetV2(input_shape=None,
                       kernel_size=1,
                       use_bias=False,
                       name='Conv_1')(x)
-    x = layers.BatchNormalization(epsilon=1e-3,
+    x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
                                   momentum=0.999,
                                   name='Conv_1_bn')(x)
     x = layers.ReLU(6., name='out_relu')(x)
@@ -413,33 +403,29 @@ def MobileNetV2(input_shape=None,
 
     # Load weights.
     if weights == 'imagenet':
-        if backend.image_data_format() == 'channels_first':
-            raise ValueError('Weights for "channels_first" format '
-                             'are not available.')
-
         if include_top:
             model_name = ('mobilenet_v2_weights_tf_dim_ordering_tf_kernels_' +
                           str(alpha) + '_' + str(rows) + '.h5')
-            weigh_path = BASE_WEIGHT_PATH + model_name
+            weight_path = BASE_WEIGHT_PATH + model_name
             weights_path = keras_utils.get_file(
-                model_name, weigh_path, cache_subdir='models')
+                model_name, weight_path, cache_subdir='models')
         else:
             model_name = ('mobilenet_v2_weights_tf_dim_ordering_tf_kernels_' +
                           str(alpha) + '_' + str(rows) + '_no_top' + '.h5')
-            weigh_path = BASE_WEIGHT_PATH + model_name
+            weight_path = BASE_WEIGHT_PATH + model_name
             weights_path = keras_utils.get_file(
-                model_name, weigh_path, cache_subdir='models')
+                model_name, weight_path, cache_subdir='models')
         model.load_weights(weights_path)
     elif weights is not None:
         model.load_weights(weights)
 
-    if old_data_format:
-        backend.set_image_data_format(old_data_format)
     return model
 
 
 def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
-    in_channels = backend.int_shape(inputs)[-1]
+    channel_axis = 1 if backend.image_data_format() == 'channels_first' else -1
+
+    in_channels = backend.int_shape(inputs)[channel_axis]
     pointwise_conv_filters = int(filters * alpha)
     pointwise_filters = _make_divisible(pointwise_conv_filters, 8)
     x = inputs
@@ -453,7 +439,8 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
                           use_bias=False,
                           activation=None,
                           name=prefix + 'expand')(x)
-        x = layers.BatchNormalization(epsilon=1e-3,
+        x = layers.BatchNormalization(axis=channel_axis,
+                                      epsilon=1e-3,
                                       momentum=0.999,
                                       name=prefix + 'expand_BN')(x)
         x = layers.ReLU(6., name=prefix + 'expand_relu')(x)
@@ -470,7 +457,8 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
                                use_bias=False,
                                padding='same' if stride == 1 else 'valid',
                                name=prefix + 'depthwise')(x)
-    x = layers.BatchNormalization(epsilon=1e-3,
+    x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
                                   momentum=0.999,
                                   name=prefix + 'depthwise_BN')(x)
 
@@ -483,8 +471,10 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
                       use_bias=False,
                       activation=None,
                       name=prefix + 'project')(x)
-    x = layers.BatchNormalization(
-        epsilon=1e-3, momentum=0.999, name=prefix + 'project_BN')(x)
+    x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
+                                  momentum=0.999,
+                                  name=prefix + 'project_BN')(x)
 
     if in_channels == pointwise_filters and stride == 1:
         return layers.Add(name=prefix + 'add')([inputs, x])

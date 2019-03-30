@@ -209,21 +209,6 @@ def MobileNet(input_shape=None,
                               ' Weights for input shape '
                               '(224, 224) will be loaded.')
 
-    if backend.image_data_format() != 'channels_last':
-        warnings.warn('The MobileNet family of models is only available '
-                      'for the input data format "channels_last" '
-                      '(width, height, channels). '
-                      'However your settings specify the default '
-                      'data format "channels_first" (channels, width, height).'
-                      ' You should set `image_data_format="channels_last"` '
-                      'in your Keras config located at ~/.keras/keras.json. '
-                      'The model being returned right now will expect inputs '
-                      'to follow the "channels_last" data format.')
-        backend.set_image_data_format('channels_last')
-        old_data_format = 'channels_first'
-    else:
-        old_data_format = None
-
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape)
     else:
@@ -267,8 +252,8 @@ def MobileNet(input_shape=None,
         x = layers.Conv2D(classes, (1, 1),
                           padding='same',
                           name='conv_preds')(x)
-        x = layers.Activation('softmax', name='act_softmax')(x)
         x = layers.Reshape((classes,), name='reshape_2')(x)
+        x = layers.Activation('softmax', name='act_softmax')(x)
     else:
         if pooling == 'avg':
             x = layers.GlobalAveragePooling2D()(x)
@@ -287,9 +272,6 @@ def MobileNet(input_shape=None,
 
     # Load weights.
     if weights == 'imagenet':
-        if backend.image_data_format() == 'channels_first':
-            raise ValueError('Weights for "channels_first" format '
-                             'are not available.')
         if alpha == 1.0:
             alpha_text = '1_0'
         elif alpha == 0.75:
@@ -315,8 +297,6 @@ def MobileNet(input_shape=None,
     elif weights is not None:
         model.load_weights(weights)
 
-    if old_data_format:
-        backend.set_image_data_format(old_data_format)
     return model
 
 
