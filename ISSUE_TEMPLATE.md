@@ -12,6 +12,9 @@ The following is a list of frequently asked questions.
 - `ImportError: cannot import name 'ResNeXt50'`
   - The latest releases may not include the latest models.
   - If you want to use the bleeding edge version, you can try `pip install -U git+https://github.com/keras-team/keras git+https://github.com/keras-team/keras-applications`.
+- Lack of training configuration
+  - The keras-applications is designed for inference only, so don't provide training details such as data augmentation (e.g., rotating, shifting), optimization hyperparameters (e.g., lr, decay), and a release number of ImageNet used for training.
+  - For such information, you can check the original repositories shown in the table in README.
 -->
 
 ### Environment
