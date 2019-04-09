@@ -290,11 +290,11 @@ def MobileNetV2(input_shape=None,
                              '`1.0`, `1.3` or `1.4` only.')
 
         if rows != cols or rows not in [96, 128, 160, 192, 224]:
-            if rows is None:
-                rows = 224
-                warnings.warn('MobileNet shape is undefined.'
-                              ' Weights for input shape'
-                              '(224, 224) will be loaded.')
+            rows = 224
+            warnings.warn('`rows` is different from `cols` or '
+                          'not in [96, 128, 160, 192, 224]. '
+                          'Weights for input shape (224, 224) '
+                          'will be loaded as the default.')
 
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape)
