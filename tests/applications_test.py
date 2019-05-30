@@ -29,11 +29,10 @@ from multiprocessing import Process, Queue
 def keras_modules_injection(base_fun):
 
     def wrapper(*args, **kwargs):
-        if hasattr(keras_applications, 'get_submodules_from_kwargs'):
-            kwargs['backend'] = backend
-            kwargs['layers'] = layers
-            kwargs['models'] = models
-            kwargs['utils'] = utils
+        kwargs['backend'] = backend
+        kwargs['layers'] = layers
+        kwargs['models'] = models
+        kwargs['utils'] = utils
         return base_fun(*args, **kwargs)
     return wrapper
 
