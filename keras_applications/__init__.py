@@ -47,7 +47,7 @@ def correct_pad(backend, inputs, kernel_size):
     return ((correct[0] - adjust[0], correct[0]),
             (correct[1] - adjust[1], correct[1]))
 
-__version__ = '1.0.7'
+__version__ = '1.0.8'
 
 
 from . import vgg16
