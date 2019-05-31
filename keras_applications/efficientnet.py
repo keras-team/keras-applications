@@ -22,8 +22,8 @@ import json
 import numpy as np
 from six.moves import xrange
 
-from keras_applications import get_submodules_from_kwargs
-from keras_applications.imagenet_utils import _obtain_input_shape
+from . import get_submodules_from_kwargs
+from .imagenet_utils import _obtain_input_shape, decode_predictions
 
 
 backend = None
@@ -39,10 +39,6 @@ WEIGHTS_HASHES = {
     'efficientnet-b0': ('e423137a2235dfc8166aac54ba9f306fb1f2f77843d88f9437079952e9b3622f',
                         '')
 }
-
-CLASS_INDEX = None
-CLASS_INDEX_PATH = ('https://storage.googleapis.com/cloud-tpu-checkpoints/'
-                    'efficientnet/eval_data/labels_map.txt')
 
 MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
 STDDEV_RGB = [0.229 * 255, 0.224 * 255, 0.225 * 255]
@@ -523,41 +519,3 @@ def preprocess_input(x, **kwargs):
         else:
             x = backend.bias_add(x, _MEAN_RGB_TENSOR)
         return x / STDDEV_RGB
-
-
-def decode_predictions(preds, top=5, **kwargs):
-    """Decodes the prediction of an ImageNet model.
-    # Arguments
-        preds: Numpy tensor encoding a batch of predictions.
-        top: Integer, how many top-guesses to return.
-    # Returns
-        A list of lists of top class prediction tuples
-        `(class_name, class_description, score)`.
-        One list of tuples per sample in batch input.
-    # Raises
-        ValueError: In case of invalid shape of the `pred` array
-            (must be 2D).
-    """
-    global CLASS_INDEX
-
-    _, _, _, keras_utils = get_submodules_from_kwargs(kwargs)
-
-    if len(preds.shape) != 2 or preds.shape[1] != 1000:
-        raise ValueError('`decode_predictions` expects '
-                         'a batch of predictions '
-                         '(i.e. a 2D array of shape (samples, 1000)). '
-                         'Found array with shape: ' + str(preds.shape))
-    if CLASS_INDEX is None:
-        fpath = keras_utils.get_file(
-            'efficientnet_class_index.json',
-            CLASS_INDEX_PATH,
-            cache_subdir='models',
-            file_hash='3e232637a09beeb733f409908cfc0ba256e83f06815684678abafd4c0990c757')
-        with open(fpath) as f:
-            CLASS_INDEX = json.load(f)
-    results = []
-    for pred in preds:
-        top_indices = pred.argsort()[-top:][::-1]
-        result = [(CLASS_INDEX[str(i)], pred[i]) for i in top_indices]
-        results.append(result)
-    return results
