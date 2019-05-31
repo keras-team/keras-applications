@@ -44,6 +44,10 @@ CLASS_INDEX = None
 CLASS_INDEX_PATH = ('https://storage.googleapis.com/cloud-tpu-checkpoints/'
                     'efficientnet/eval_data/labels_map.txt')
 
+MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
+STDDEV_RGB = [0.229 * 255, 0.224 * 255, 0.225 * 255]
+_MEAN_RGB_TENSOR = None
+
 
 BlockArgs = collections.namedtuple('BlockArgs', [
     'kernel_size', 'num_repeat', 'input_filters', 'output_filters',
@@ -499,10 +503,26 @@ def preprocess_input(x, **kwargs):
         Preprocessed array.
     """
 
-    if isinstance(x, np.ndarray) and not issubclass(x.dtype.type, np.floating):
-        backend, _, _, _ = get_submodules_from_kwargs(kwargs)
-        x = x.astype(backend.floatx(), copy=False)
-    return x / 255.
+    backend, _, _, _ = get_submodules_from_kwargs(kwargs)
+
+    if isinstance(x, np.ndarray):
+
+        if not issubclass(x.dtype.type, np.floating):
+            x = x.astype(backend.floatx(), copy=False)
+        return (x - MEAN_RGB) / STDDEV_RGB
+
+    else:
+
+        if _MEAN_RGB_TENSOR is None:
+            _MEAN_RGB_TENSOR = backend.constant(-np.array(MEAN_RGB))
+
+        # Zero-center by mean pixel
+        if backend.dtype(x) != backend.dtype(_MEAN_RGB_TENSOR):
+            x = backend.bias_add(
+                x, backend.cast(_MEAN_RGB_TENSOR, backend.dtype(x)))
+        else:
+            x = backend.bias_add(x, _MEAN_RGB_TENSOR)
+        return x / STDDEV_RGB
 
 
 def decode_predictions(preds, top=5, **kwargs):
