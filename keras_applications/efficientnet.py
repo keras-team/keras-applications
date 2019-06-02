@@ -126,7 +126,7 @@ def round_repeats(repeats, depth_coefficient):
 
 
 
-def MBConvBlock(inputs, block_args, relu_fn=swish, prefix=''):
+def mb_conv_block(inputs, block_args, relu_fn=swish, prefix=''):
     """Mobile Inverted Residual Bottleneck."""
 
     has_se = (block_args.se_ratio is not None) and (0 < block_args.se_ratio <= 1)
@@ -306,14 +306,14 @@ def EfficientNet(width_coefficient,
             num_repeat=round_repeats(block_args.num_repeat, depth_coefficient))
 
         # The first block needs to take care of stride and filter size increase.
-        x = MBConvBlock(x, block_args, relu_fn=relu_fn, prefix='block{}a_'.format(idx+1))
+        x = mb_conv_block(x, block_args, relu_fn=relu_fn, prefix='block{}a_'.format(idx+1))
         if block_args.num_repeat > 1:
             # pylint: disable=protected-access
             block_args = block_args._replace(
                 input_filters=block_args.output_filters, strides=[1, 1])
             # pylint: enable=protected-access
             for bidx in xrange(block_args.num_repeat - 1):
-                x = MBConvBlock(x, block_args, relu_fn=relu_fn,
+                x = mb_conv_block(x, block_args, relu_fn=relu_fn,
                                 prefix='block{}{}_'.format(idx+1, string.ascii_lowercase[bidx+1]))
 
     # Build top
