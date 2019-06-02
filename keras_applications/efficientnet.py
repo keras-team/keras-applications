@@ -33,11 +33,17 @@ keras_utils = None
 
 
 BASE_WEIGHTS_PATH = (
-    'https://github.com/keras-team/keras-applications/'
+    'https://github.com/Callidior/keras-applications/'
     'releases/download/efficientnet/')
 WEIGHTS_HASHES = {
-    'efficientnet-b0': ('e423137a2235dfc8166aac54ba9f306fb1f2f77843d88f9437079952e9b3622f',
-                        '')
+    'efficientnet-b0': ('dd631faed10515e2cd08e3b5da0624b3f50d523fe69b9b5fdf037365f9f907f0',
+                        'e5649d29a9f2dd60380dd05d633896661c36e1f9596e302a305f9ff1774c1bc8'),
+    'efficientnet-b1': ('3b88771863db84f3ddea6d722a81871904e0fa6288869a0adaa85059094974bb',
+                        '5b47361e17c7bd1d21e42add4456960c9312f71b57b9f6d548e85b7ad9243bdf'),
+    'efficientnet-b2': ('e78c89b8580d907238fd45f8ef20013195d198d16135fadc80650b2453f64f6c',
+                        'ac3c2de4e43096d2979909dd9ec22119c3a34a9fd3cbda9977c1d05f7ebcede9'),
+    'efficientnet-b3': ('99725ac825f7ddf5e47c05d333d9fb623faf1640c0b0c7372f855804e1861508',
+                        'e70d7ea35fa684f9046e6cc62783940bd83d16edc238807fb75c73105d7ffbaa')
 }
 
 MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
@@ -342,7 +348,7 @@ def EfficientNet(width_coefficient,
     model = models.Model(inputs, x, name=model_name)
 
     # Load weights.
-    if (weights == 'imagenet') and (model_name in WEIGHTS_HASHES):
+    if weights == 'imagenet':
         if include_top:
             file_name = model_name + '_weights_tf_dim_ordering_tf_kernels.h5'
             file_hash = WEIGHTS_HASHES[model_name][0]
