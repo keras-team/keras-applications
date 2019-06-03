@@ -515,6 +515,8 @@ def preprocess_input(x, **kwargs):
 
     else:
 
+        global _MEAN_RGB_TENSOR
+
         if _MEAN_RGB_TENSOR is None:
             _MEAN_RGB_TENSOR = backend.constant(-np.array(MEAN_RGB))
 
