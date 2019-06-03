@@ -107,6 +107,18 @@ def conv_kernel_initializer(shape, dtype=None):
     return backend.random_normal(shape, mean=0.0, stddev=np.sqrt(2.0 / fan_out), dtype=dtype)
 
 
+def dense_kernel_initializer(shape, dtype=None):
+    """Initialization for dense kernels.
+    
+    This initialization is equal to
+    keras.initializers.VarianceScaling(scale=1.0/3.0, mode='fan_out',
+                                       distribution='uniform').
+    """
+
+    init_range = 1.0 / np.sqrt(shape[1])
+    return backend.random_uniform(shape, -init_range, init_range, dtype=dtype)
+
+
 def round_filters(filters, width_coefficient, depth_divisor):
     """Round number of filters based on width multiplier."""
 
@@ -337,9 +349,7 @@ def EfficientNet(width_coefficient,
         x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
         if dropout_rate and dropout_rate > 0:
             x = layers.Dropout(dropout_rate, name='top_dropout')(x)
-        # kernel_initializer in reference implementation:
-        # keras.initializers.VarianceScaling(1.0/3.0, mode='fan_out', distribution='uniform')
-        x = layers.Dense(classes, activation='softmax', name='probs')(x)
+        x = layers.Dense(classes, activation='softmax', kernel_initializer=dense_kernel_initializer, name='probs')(x)
     else:
         if pooling == 'avg':
             x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
