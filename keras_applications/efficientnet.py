@@ -126,7 +126,7 @@ def round_repeats(repeats, depth_coefficient):
 
 
 
-def mb_conv_block(inputs, block_args, relu_fn=swish, prefix=''):
+def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
     """Mobile Inverted Residual Bottleneck."""
 
     has_se = (block_args.se_ratio is not None) and (0 < block_args.se_ratio <= 1)
@@ -184,6 +184,8 @@ def mb_conv_block(inputs, block_args, relu_fn=swish, prefix=''):
     if block_args.id_skip and all(
             s == 1 for s in block_args.strides
     ) and block_args.input_filters == block_args.output_filters:
+        if drop_rate and (drop_rate > 0):
+            x = layers.Dropout(drop_rate, noise_shape=(None, 1, 1, 1), name=prefix+'drop')(x)
         x = layers.add([x, inputs], name=prefix+'add')
 
     return x
@@ -194,6 +196,7 @@ def EfficientNet(width_coefficient,
                  depth_coefficient,
                  default_resolution,
                  dropout_rate=0.2,
+                 drop_connect_rate=0.2,
                  depth_divisor=8,
                  relu_fn=swish,
                  blocks_args=DEFAULT_BLOCKS_ARGS,
@@ -215,7 +218,8 @@ def EfficientNet(width_coefficient,
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_resolution: int, default input image size.
-        dropout_rate: float, dropout rate.
+        dropout_rate: float, dropout rate before final classifier layer.
+        drop_connect_rate: float, dropout rate at skip connections.
         depth_divisor: int.
         blocks_args: A list of BlockArgs to construct block modules.
         model_name: string, model name.
@@ -295,6 +299,8 @@ def EfficientNet(width_coefficient,
     x = layers.Activation(relu_fn, name='stem_activation')(x)
 
     # Build blocks
+    num_blocks_total = sum(block_args.num_repeat for block_args in blocks_args)
+    block_num = 0
     for idx, block_args in enumerate(blocks_args):
         assert block_args.num_repeat > 0
         # Update block input and output filters based on depth multiplier.
@@ -306,7 +312,8 @@ def EfficientNet(width_coefficient,
             num_repeat=round_repeats(block_args.num_repeat, depth_coefficient))
 
         # The first block needs to take care of stride and filter size increase.
-        x = mb_conv_block(x, block_args, relu_fn=relu_fn, prefix='block{}a_'.format(idx+1))
+        x = mb_conv_block(x, block_args, drop_rate=drop_connect_rate*float(block_num)/num_blocks_total, relu_fn=relu_fn, prefix='block{}a_'.format(idx+1))
+        block_num += 1
         if block_args.num_repeat > 1:
             # pylint: disable=protected-access
             block_args = block_args._replace(
@@ -314,7 +321,9 @@ def EfficientNet(width_coefficient,
             # pylint: enable=protected-access
             for bidx in xrange(block_args.num_repeat - 1):
                 x = mb_conv_block(x, block_args, relu_fn=relu_fn,
-                                prefix='block{}{}_'.format(idx+1, string.ascii_lowercase[bidx+1]))
+                                  drop_rate=drop_connect_rate * float(block_num) / num_blocks_total,
+                                  prefix='block{}{}_'.format(idx+1, string.ascii_lowercase[bidx+1]))
+                block_num += 1
 
     # Build top
     x = layers.Conv2D(round_filters(1280, width_coefficient, depth_divisor), 1,
