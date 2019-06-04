@@ -71,6 +71,7 @@ The input size used was 224x224 for all models except NASNetLarge (331x331), Inc
 - [Mask RCNN](https://github.com/matterport/Mask_RCNN) by @matterport [[paper]](https://arxiv.org/abs/1703.06870)
 - [U-Net](https://github.com/zhixuhao/unet) by @zhixuhao [[paper]](https://arxiv.org/abs/1505.04597)
 - [RetinaNet](https://github.com/fizyr/keras-retinanet) by @fizyr [[paper]](https://arxiv.org/abs/1708.02002)
+- [PSPNet](https://github.com/divamgupta/image-segmentation-keras) by @divamgupta [[paper]](https://arxiv.org/abs/1612.01105)
 
 ### Sequence learning
 
