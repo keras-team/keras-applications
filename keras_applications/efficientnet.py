@@ -36,14 +36,22 @@ BASE_WEIGHTS_PATH = (
     'https://github.com/Callidior/keras-applications/'
     'releases/download/efficientnet/')
 WEIGHTS_HASHES = {
-    'efficientnet-b0': ('dd631faed10515e2cd08e3b5da0624b3f50d523fe69b9b5fdf037365f9f907f0',
-                        'e5649d29a9f2dd60380dd05d633896661c36e1f9596e302a305f9ff1774c1bc8'),
-    'efficientnet-b1': ('3b88771863db84f3ddea6d722a81871904e0fa6288869a0adaa85059094974bb',
-                        '5b47361e17c7bd1d21e42add4456960c9312f71b57b9f6d548e85b7ad9243bdf'),
-    'efficientnet-b2': ('e78c89b8580d907238fd45f8ef20013195d198d16135fadc80650b2453f64f6c',
-                        'ac3c2de4e43096d2979909dd9ec22119c3a34a9fd3cbda9977c1d05f7ebcede9'),
-    'efficientnet-b3': ('99725ac825f7ddf5e47c05d333d9fb623faf1640c0b0c7372f855804e1861508',
-                        'e70d7ea35fa684f9046e6cc62783940bd83d16edc238807fb75c73105d7ffbaa')
+    'efficientnet-b0': ('dd631faed10515e2cd08e3b5da0624b3'
+                        'f50d523fe69b9b5fdf037365f9f907f0',
+                        'e5649d29a9f2dd60380dd05d63389666'
+                        '1c36e1f9596e302a305f9ff1774c1bc8'),
+    'efficientnet-b1': ('3b88771863db84f3ddea6d722a818719'
+                        '04e0fa6288869a0adaa85059094974bb',
+                        '5b47361e17c7bd1d21e42add4456960c'
+                        '9312f71b57b9f6d548e85b7ad9243bdf'),
+    'efficientnet-b2': ('e78c89b8580d907238fd45f8ef200131'
+                        '95d198d16135fadc80650b2453f64f6c',
+                        'ac3c2de4e43096d2979909dd9ec22119'
+                        'c3a34a9fd3cbda9977c1d05f7ebcede9'),
+    'efficientnet-b3': ('99725ac825f7ddf5e47c05d333d9fb62'
+                        '3faf1640c0b0c7372f855804e1861508',
+                        'e70d7ea35fa684f9046e6cc62783940b'
+                        'd83d16edc238807fb75c73105d7ffbaa')
 }
 
 MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
@@ -78,23 +86,23 @@ DEFAULT_BLOCKS_ARGS = [
 ]
 
 CONV_KERNEL_INITIALIZER = {
-    'class_name' : 'VarianceScaling',
-    'config' : {
-        'scale' : 2.0,
-        'mode' : 'fan_out',
+    'class_name': 'VarianceScaling',
+    'config': {
+        'scale': 2.0,
+        'mode': 'fan_out',
         # EfficientNet actually uses a truncated normal distribution for initializing
         # conv layers, but keras.initializers.VarianceScaling does not provide this.
-        # We decided against implementing a custom initializer for better serializability.
-        'distribution' : 'normal'
+        # We decided against a custom initializer for better serializability.
+        'distribution': 'normal'
     }
 }
 
 DENSE_KERNEL_INITIALIZER = {
-    'class_name' : 'VarianceScaling',
-    'config' : {
-        'scale' : 1./3.,
-        'mode' : 'fan_out',
-        'distribution' : 'uniform'
+    'class_name': 'VarianceScaling',
+    'config': {
+        'scale': 1. / 3.,
+        'mode': 'fan_out',
+        'distribution': 'uniform'
     }
 }
 
@@ -107,9 +115,10 @@ def swish(x):
 
     if backend.backend() == 'tensorflow':
         try:
-            # The native TF implementation has a more memory-efficient gradient implementation
+            # The native TF implementation has a more
+            # memory-efficient gradient implementation
             return backend.tf.nn.swish(x)
-        except:
+        except AttributeError:
             pass
 
     return x * backend.sigmoid(x)
@@ -119,8 +128,8 @@ def round_filters(filters, width_coefficient, depth_divisor):
     """Round number of filters based on width multiplier."""
 
     filters *= width_coefficient
-    new_filters = max(depth_divisor,
-                      int(filters + depth_divisor / 2) // depth_divisor * depth_divisor)
+    new_filters = int(filters + depth_divisor / 2) // depth_divisor * depth_divisor
+    new_filters = max(depth_divisor, new_filters)
     # Make sure that round down does not go down by more than 10%.
     if new_filters < 0.9 * filters:
         new_filters += depth_divisor
@@ -131,7 +140,6 @@ def round_repeats(repeats, depth_coefficient):
     """Round number of repeats based on depth multiplier."""
 
     return int(math.ceil(depth_coefficient * repeats))
-
 
 
 def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
@@ -147,9 +155,9 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
                           padding='same',
                           use_bias=False,
                           kernel_initializer=CONV_KERNEL_INITIALIZER,
-                          name=prefix+'expand_conv')(inputs)
-        x = layers.BatchNormalization(axis=bn_axis, name=prefix+'expand_bn')(x)
-        x = layers.Activation(relu_fn, name=prefix+'expand_activation')(x)
+                          name=prefix + 'expand_conv')(inputs)
+        x = layers.BatchNormalization(axis=bn_axis, name=prefix + 'expand_bn')(x)
+        x = layers.Activation(relu_fn, name=prefix + 'expand_activation')(x)
     else:
         x = inputs
 
@@ -159,45 +167,49 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
                                padding='same',
                                use_bias=False,
                                depthwise_initializer=CONV_KERNEL_INITIALIZER,
-                               name=prefix+'dwconv')(x)
-    x = layers.BatchNormalization(axis=bn_axis, name=prefix+'bn')(x)
-    x = layers.Activation(relu_fn, name=prefix+'activation')(x)
+                               name=prefix + 'dwconv')(x)
+    x = layers.BatchNormalization(axis=bn_axis, name=prefix + 'bn')(x)
+    x = layers.Activation(relu_fn, name=prefix + 'activation')(x)
 
     # Squeeze and Excitation phase
     if has_se:
-        num_reduced_filters = max(1, int(block_args.input_filters * block_args.se_ratio))
-        se_tensor = layers.GlobalAveragePooling2D(name=prefix+'se_squeeze')(x)
-        se_tensor = layers.Reshape((1, 1, filters), name=prefix+'se_reshape')(se_tensor)
+        num_reduced_filters = max(1, int(
+            block_args.input_filters * block_args.se_ratio
+        ))
+        se_tensor = layers.GlobalAveragePooling2D(name=prefix + 'se_squeeze')(x)
+        se_tensor = layers.Reshape((1, 1, filters),
+                                   name=prefix + 'se_reshape')(se_tensor)
         se_tensor = layers.Conv2D(num_reduced_filters, 1,
                                   activation=relu_fn,
                                   padding='same',
                                   use_bias=True,
                                   kernel_initializer=CONV_KERNEL_INITIALIZER,
-                                  name=prefix+'se_reduce')(se_tensor)
+                                  name=prefix + 'se_reduce')(se_tensor)
         se_tensor = layers.Conv2D(filters, 1,
                                   activation='sigmoid',
                                   padding='same',
                                   use_bias=True,
                                   kernel_initializer=CONV_KERNEL_INITIALIZER,
-                                  name=prefix+'se_expand')(se_tensor)
-        x = layers.multiply([x, se_tensor], name=prefix+'se_excite')
+                                  name=prefix + 'se_expand')(se_tensor)
+        x = layers.multiply([x, se_tensor], name=prefix + 'se_excite')
 
     # Output phase
     x = layers.Conv2D(block_args.output_filters, 1,
                       padding='same',
                       use_bias=False,
                       kernel_initializer=CONV_KERNEL_INITIALIZER,
-                      name=prefix+'project_conv')(x)
-    x = layers.BatchNormalization(axis=bn_axis, name=prefix+'project_bn')(x)
+                      name=prefix + 'project_conv')(x)
+    x = layers.BatchNormalization(axis=bn_axis, name=prefix + 'project_bn')(x)
     if block_args.id_skip and all(
             s == 1 for s in block_args.strides
     ) and block_args.input_filters == block_args.output_filters:
         if drop_rate and (drop_rate > 0):
-            x = layers.Dropout(drop_rate, noise_shape=(None, 1, 1, 1), name=prefix+'drop')(x)
-        x = layers.add([x, inputs], name=prefix+'add')
+            x = layers.Dropout(drop_rate,
+                               noise_shape=(None, 1, 1, 1),
+                               name=prefix + 'drop')(x)
+        x = layers.add([x, inputs], name=prefix + 'add')
 
     return x
-
 
 
 def EfficientNet(width_coefficient,
@@ -278,8 +290,9 @@ def EfficientNet(width_coefficient,
                          ' as true, `classes` should be 1000')
 
     if weights == 'imagenet' and (model_name not in WEIGHTS_HASHES):
-        raise ValueError('Pre-trained weights are only available for EfficientNet-B0 to -B3,'
-                         'but you requested weights for ' + model_name + '.')
+        raise ValueError('Pre-trained weights are only available for '
+                         'EfficientNet-B0 to -B3, but you requested weights for ' +
+                         model_name + '.')
 
     # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
@@ -324,7 +337,11 @@ def EfficientNet(width_coefficient,
             num_repeat=round_repeats(block_args.num_repeat, depth_coefficient))
 
         # The first block needs to take care of stride and filter size increase.
-        x = mb_conv_block(x, block_args, drop_rate=drop_connect_rate*float(block_num)/num_blocks_total, relu_fn=relu_fn, prefix='block{}a_'.format(idx+1))
+        drop_rate = drop_connect_rate * float(block_num) / num_blocks_total
+        x = mb_conv_block(x, block_args,
+                          relu_fn=relu_fn,
+                          drop_rate=drop_rate,
+                          prefix='block{}a_'.format(idx + 1))
         block_num += 1
         if block_args.num_repeat > 1:
             # pylint: disable=protected-access
@@ -332,9 +349,15 @@ def EfficientNet(width_coefficient,
                 input_filters=block_args.output_filters, strides=[1, 1])
             # pylint: enable=protected-access
             for bidx in xrange(block_args.num_repeat - 1):
-                x = mb_conv_block(x, block_args, relu_fn=relu_fn,
-                                  drop_rate=drop_connect_rate * float(block_num) / num_blocks_total,
-                                  prefix='block{}{}_'.format(idx+1, string.ascii_lowercase[bidx+1]))
+                drop_rate = drop_connect_rate * float(block_num) / num_blocks_total
+                block_prefix = 'block{}{}_'.format(
+                    idx + 1,
+                    string.ascii_lowercase[bidx + 1]
+                )
+                x = mb_conv_block(x, block_args,
+                                  relu_fn=relu_fn,
+                                  drop_rate=drop_rate,
+                                  prefix=block_prefix)
                 block_num += 1
 
     # Build top
@@ -349,7 +372,10 @@ def EfficientNet(width_coefficient,
         x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
         if dropout_rate and dropout_rate > 0:
             x = layers.Dropout(dropout_rate, name='top_dropout')(x)
-        x = layers.Dense(classes, activation='softmax', kernel_initializer=DENSE_KERNEL_INITIALIZER, name='probs')(x)
+        x = layers.Dense(classes,
+                         activation='softmax',
+                         kernel_initializer=DENSE_KERNEL_INITIALIZER,
+                         name='probs')(x)
     else:
         if pooling == 'avg':
             x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
@@ -513,7 +539,6 @@ setattr(EfficientNetB4, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB5, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB6, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB7, '__doc__', EfficientNet.__doc__)
-
 
 
 def preprocess_input(x, **kwargs):
