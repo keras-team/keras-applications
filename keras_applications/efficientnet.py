@@ -77,6 +77,27 @@ DEFAULT_BLOCKS_ARGS = [
               expand_ratio=6, id_skip=True, strides=[1, 1], se_ratio=0.25)
 ]
 
+CONV_KERNEL_INITIALIZER = {
+    'class_name' : 'VarianceScaling',
+    'config' : {
+        'scale' : 2.0,
+        'mode' : 'fan_out',
+        # EfficientNet actually uses a truncated normal distribution for initializing
+        # conv layers, but keras.initializers.VarianceScaling does not provide this.
+        # We decided against implementing a custom initializer for better serializability.
+        'distribution' : 'normal'
+    }
+}
+
+DENSE_KERNEL_INITIALIZER = {
+    'class_name' : 'VarianceScaling',
+    'config' : {
+        'scale' : 1./3.,
+        'mode' : 'fan_out',
+        'distribution' : 'uniform'
+    }
+}
+
 
 def swish(x):
     """Swish activation function: x * sigmoid(x).
@@ -92,31 +113,6 @@ def swish(x):
             pass
 
     return x * backend.sigmoid(x)
-
-
-def conv_kernel_initializer(shape, dtype=None):
-    """Initialization for convolutional kernels.
-
-    The main difference with VarianceScaling is that
-    VarianceScaling uses a truncated normal with an uncorrected
-    standard deviation, whereas here we use a normal distribution.
-    """
-
-    kernel_height, kernel_width, _, out_filters = shape
-    fan_out = int(kernel_height * kernel_width * out_filters)
-    return backend.random_normal(shape, mean=0.0, stddev=np.sqrt(2.0 / fan_out), dtype=dtype)
-
-
-def dense_kernel_initializer(shape, dtype=None):
-    """Initialization for dense kernels.
-    
-    This initialization is equal to
-    keras.initializers.VarianceScaling(scale=1.0/3.0, mode='fan_out',
-                                       distribution='uniform').
-    """
-
-    init_range = 1.0 / np.sqrt(shape[1])
-    return backend.random_uniform(shape, -init_range, init_range, dtype=dtype)
 
 
 def round_filters(filters, width_coefficient, depth_divisor):
@@ -150,7 +146,7 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
         x = layers.Conv2D(filters, 1,
                           padding='same',
                           use_bias=False,
-                          kernel_initializer=conv_kernel_initializer,
+                          kernel_initializer=CONV_KERNEL_INITIALIZER,
                           name=prefix+'expand_conv')(inputs)
         x = layers.BatchNormalization(axis=bn_axis, name=prefix+'expand_bn')(x)
         x = layers.Activation(relu_fn, name=prefix+'expand_activation')(x)
@@ -162,7 +158,7 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
                                strides=block_args.strides,
                                padding='same',
                                use_bias=False,
-                               depthwise_initializer=conv_kernel_initializer,
+                               depthwise_initializer=CONV_KERNEL_INITIALIZER,
                                name=prefix+'dwconv')(x)
     x = layers.BatchNormalization(axis=bn_axis, name=prefix+'bn')(x)
     x = layers.Activation(relu_fn, name=prefix+'activation')(x)
@@ -176,13 +172,13 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
                                   activation=relu_fn,
                                   padding='same',
                                   use_bias=True,
-                                  kernel_initializer=conv_kernel_initializer,
+                                  kernel_initializer=CONV_KERNEL_INITIALIZER,
                                   name=prefix+'se_reduce')(se_tensor)
         se_tensor = layers.Conv2D(filters, 1,
                                   activation='sigmoid',
                                   padding='same',
                                   use_bias=True,
-                                  kernel_initializer=conv_kernel_initializer,
+                                  kernel_initializer=CONV_KERNEL_INITIALIZER,
                                   name=prefix+'se_expand')(se_tensor)
         x = layers.multiply([x, se_tensor], name=prefix+'se_excite')
 
@@ -190,7 +186,7 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
     x = layers.Conv2D(block_args.output_filters, 1,
                       padding='same',
                       use_bias=False,
-                      kernel_initializer=conv_kernel_initializer,
+                      kernel_initializer=CONV_KERNEL_INITIALIZER,
                       name=prefix+'project_conv')(x)
     x = layers.BatchNormalization(axis=bn_axis, name=prefix+'project_bn')(x)
     if block_args.id_skip and all(
@@ -309,7 +305,7 @@ def EfficientNet(width_coefficient,
                       strides=(2, 2),
                       padding='same',
                       use_bias=False,
-                      kernel_initializer=conv_kernel_initializer,
+                      kernel_initializer=CONV_KERNEL_INITIALIZER,
                       name='stem_conv')(x)
     x = layers.BatchNormalization(axis=bn_axis, name='stem_bn')(x)
     x = layers.Activation(relu_fn, name='stem_activation')(x)
@@ -345,7 +341,7 @@ def EfficientNet(width_coefficient,
     x = layers.Conv2D(round_filters(1280, width_coefficient, depth_divisor), 1,
                       padding='same',
                       use_bias=False,
-                      kernel_initializer=conv_kernel_initializer,
+                      kernel_initializer=CONV_KERNEL_INITIALIZER,
                       name='top_conv')(x)
     x = layers.BatchNormalization(axis=bn_axis, name='top_bn')(x)
     x = layers.Activation(relu_fn, name='top_activation')(x)
@@ -353,7 +349,7 @@ def EfficientNet(width_coefficient,
         x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
         if dropout_rate and dropout_rate > 0:
             x = layers.Dropout(dropout_rate, name='top_dropout')(x)
-        x = layers.Dense(classes, activation='softmax', kernel_initializer=dense_kernel_initializer, name='probs')(x)
+        x = layers.Dense(classes, activation='softmax', kernel_initializer=DENSE_KERNEL_INITIALIZER, name='probs')(x)
     else:
         if pooling == 'avg':
             x = layers.GlobalAveragePooling2D(name='avg_pool')(x)
