@@ -191,6 +191,12 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
                                   use_bias=True,
                                   kernel_initializer=CONV_KERNEL_INITIALIZER,
                                   name=prefix + 'se_expand')(se_tensor)
+        if backend.backend() == 'theano':
+            # For the Theano backend, we have to explicitly make
+            # the excitation weights broadcastable.
+            se_tensor = layers.Lambda(
+                lambda x: backend.pattern_broadcast(x, [True, True, True, False]),
+                name=prefix + 'se_broadcast')(se_tensor)
         x = layers.multiply([x, se_tensor], name=prefix + 'se_excite')
 
     # Output phase
