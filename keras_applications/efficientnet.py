@@ -90,8 +90,9 @@ CONV_KERNEL_INITIALIZER = {
     'config': {
         'scale': 2.0,
         'mode': 'fan_out',
-        # EfficientNet actually uses a truncated normal distribution for initializing
-        # conv layers, but keras.initializers.VarianceScaling does not provide this.
+        # EfficientNet actually uses an untruncated normal distribution for
+        # initializing conv layers, but keras.initializers.VarianceScaling use
+        # a truncated distribution.
         # We decided against a custom initializer for better serializability.
         'distribution': 'normal'
     }
