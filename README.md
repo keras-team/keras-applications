@@ -23,7 +23,7 @@ and is distributed under the MIT license.
 
 - The top-k errors were obtained using Keras Applications with the **TensorFlow backend** on the **2012 ILSVRC ImageNet validation set** and may slightly differ from the original ones.
 The input size used was 224x224 for all models except NASNetLarge (331x331), InceptionV3 (299x299), InceptionResNetV2 (299x299), Xception (299x299), EfficientNet-B1 (240x240),
-EfficientNet-B2 (260x260), and EfficientNet-B3 (300x300).
+EfficientNet-B2 (260x260), EfficientNet-B3 (300x300), EfficientNet-B4 (380x380), and EfficientNet-B5 (456x456).
   * Top-1: single center crop, top-1 error
   * Top-5: single center crop, top-5 error
   * 10-5: ten crops (1 center + 4 corners and those mirrored ones), top-5 error
@@ -64,6 +64,8 @@ EfficientNet-B2 (260x260), and EfficientNet-B3 (300x300).
 | [EfficientNet-B1](keras_applications/efficientnet.py)          | 21.296      | 5.796       | 5.326       | 7.9M   | 6.6M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
 | [EfficientNet-B2](keras_applications/efficientnet.py)          | 20.374      | 5.202       | 4.802       | 9.2M   | 7.8M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
 | [EfficientNet-B3](keras_applications/efficientnet.py)          | 19.168      | 4.698       | 4.284       | 12.3M  | 10.8M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B4](keras_applications/efficientnet.py)          | 17.446      | 3.908       | 3.554       | 19.5M  | 17.7M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B5](keras_applications/efficientnet.py)          | 16.886      | 3.506       | 3.224       | 30.6M  | 28.5M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
 
 
 ## Reference implementations from the community

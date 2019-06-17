@@ -51,7 +51,15 @@ WEIGHTS_HASHES = {
     'efficientnet-b3': ('99725ac825f7ddf5e47c05d333d9fb62'
                         '3faf1640c0b0c7372f855804e1861508',
                         'e70d7ea35fa684f9046e6cc62783940b'
-                        'd83d16edc238807fb75c73105d7ffbaa')
+                        'd83d16edc238807fb75c73105d7ffbaa'),
+    'efficientnet-b4': ('242890effb990b11fdcc91fceb59cd74'
+                        '9388c6b712c96dfb597561d6dae3060a',
+                        'eaa6455c773db0f2d4d097f7da771bb7'
+                        '25dd8c993ac6f4553b78e12565999fc1'),
+    'efficientnet-b5': ('c4cb66916633b7311688dbcf6ed5c35e'
+                        '45ce06594181066015c001103998dc67',
+                        '14161a20506013aa229abce8fd994b45'
+                        'da76b3a29e1c011635376e191c2c2d54')
 }
 
 MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
@@ -298,7 +306,7 @@ def EfficientNet(width_coefficient,
 
     if weights == 'imagenet' and (model_name not in WEIGHTS_HASHES):
         raise ValueError('Pre-trained weights are only available for '
-                         'EfficientNet-B0 to -B3, but you requested weights for ' +
+                         'EfficientNet-B0 to -B5, but you requested weights for ' +
                          model_name + '.')
 
     # Determine proper input shape

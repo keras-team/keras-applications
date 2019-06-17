@@ -68,8 +68,8 @@ EFFICIENTNET_LIST = [(keras_applications.efficientnet.EfficientNetB0, 1280, True
                      (keras_applications.efficientnet.EfficientNetB1, 1280, True),
                      (keras_applications.efficientnet.EfficientNetB2, 1408, True),
                      (keras_applications.efficientnet.EfficientNetB3, 1536, True),
-                     (keras_applications.efficientnet.EfficientNetB4, 1792, False),
-                     (keras_applications.efficientnet.EfficientNetB5, 2048, False),
+                     (keras_applications.efficientnet.EfficientNetB4, 1792, True),
+                     (keras_applications.efficientnet.EfficientNetB5, 2048, True),
                      (keras_applications.efficientnet.EfficientNetB6, 2304, False),
                      (keras_applications.efficientnet.EfficientNetB7, 2560, False)]
 
