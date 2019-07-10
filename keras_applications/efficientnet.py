@@ -64,7 +64,6 @@ WEIGHTS_HASHES = {
 
 MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
 STDDEV_RGB = [0.229 * 255, 0.224 * 255, 0.225 * 255]
-_MEAN_RGB_TENSOR = None
 
 
 BlockArgs = collections.namedtuple('BlockArgs', [
@@ -574,15 +573,12 @@ def preprocess_input(x, **kwargs):
 
     else:
 
-        global _MEAN_RGB_TENSOR
-
-        if _MEAN_RGB_TENSOR is None:
-            _MEAN_RGB_TENSOR = backend.constant(-np.array(MEAN_RGB))
+        mean_tensor = backend.constant(-np.array(MEAN_RGB))
 
         # Zero-center by mean pixel
-        if backend.dtype(x) != backend.dtype(_MEAN_RGB_TENSOR):
+        if backend.dtype(x) != backend.dtype(mean_tensor):
             x = backend.bias_add(
-                x, backend.cast(_MEAN_RGB_TENSOR, backend.dtype(x)))
+                x, backend.cast(mean_tensor, backend.dtype(x)))
         else:
-            x = backend.bias_add(x, _MEAN_RGB_TENSOR)
+            x = backend.bias_add(x, mean_tensor)
         return x / STDDEV_RGB
