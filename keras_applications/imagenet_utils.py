@@ -113,6 +113,9 @@ def _preprocess_symbolic_input(x, data_format, mode, **kwargs):
 
     backend, _, _, _ = get_submodules_from_kwargs(kwargs)
 
+    if backend.dtype(x) != backend.floatx():
+        x = backend.cast(x, backend.floatx())
+
     if mode == 'tf':
         x /= 127.5
         x -= 1.
@@ -138,12 +141,8 @@ def _preprocess_symbolic_input(x, data_format, mode, **kwargs):
     mean_tensor = backend.constant(-np.array(mean))
 
     # Zero-center by mean pixel
-    if backend.dtype(x) != backend.dtype(mean_tensor):
-        x = backend.bias_add(
-            x, backend.cast(mean_tensor, backend.dtype(x)),
-            data_format=data_format)
-    else:
-        x = backend.bias_add(x, mean_tensor, data_format)
+    x = backend.bias_add(x, mean_tensor, data_format)
+
     if std is not None:
         x /= std
     return x

@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_almost_equal
 
 # We don't use keras.applications.imagenet_utils here
 # because we also test _obtain_input_shape which is not exposed.
@@ -108,6 +108,42 @@ def test_preprocess_input_symbolic():
     model2 = models.Model(inputs2, outputs2)
     out2 = model2.predict(x2[np.newaxis])[0]
     assert_allclose(out1, out2.transpose(1, 2, 0))
+
+
+def test_preprocess_float_input_symbolic_vs_numpy():
+    # Test image batch (float)
+    x = np.random.uniform(0, 255, (2, 10, 10, 3))
+
+    for mode in ['tf', 'torch', 'caffe']:
+        inputs = layers.Input(shape=x.shape[1:])
+        outputs = layers.Lambda(
+            lambda x: preprocess_input(x, data_format='channels_last', mode=mode),
+            output_shape=x.shape[1:])(inputs)
+        model = models.Model(inputs, outputs)
+
+        out_symbolic = model.predict(x)
+        out_numpy = preprocess_input(x, data_format='channels_last', mode=mode)
+
+        assert out_symbolic.shape == out_numpy.shape
+        assert_almost_equal(out_numpy, out_symbolic, decimal=4)
+
+
+def test_preprocess_int_input_symbolic_vs_numpy():
+    # Test image batch (uint8)
+    x = np.random.randint(0, 255, (2, 10, 10, 3), dtype="uint8")
+
+    for mode in ['tf', 'torch', 'caffe']:
+        inputs = layers.Input(shape=x.shape[1:], dtype=x.dtype)
+        outputs = layers.Lambda(
+            lambda x: preprocess_input(x, data_format='channels_last', mode=mode),
+            output_shape=x.shape[1:])(inputs)
+        model = models.Model(inputs, outputs)
+
+        out_symbolic = model.predict(x)
+        out_numpy = preprocess_input(x, data_format='channels_last', mode=mode)
+
+        assert out_symbolic.shape == out_numpy.shape
+        assert_almost_equal(out_numpy, out_symbolic, decimal=4)
 
 
 def test_decode_predictions():
