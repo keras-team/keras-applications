@@ -70,8 +70,7 @@ EFFICIENTNET_LIST = [(keras_applications.efficientnet.EfficientNetB0, 1280),
                      (keras_applications.efficientnet.EfficientNetB3, 1536),
                      (keras_applications.efficientnet.EfficientNetB4, 1792),
                      (keras_applications.efficientnet.EfficientNetB5, 2048),
-                     (keras_applications.efficientnet.EfficientNetB6, 2304),
-                     (keras_applications.efficientnet.EfficientNetB7, 2560)]
+                     (keras_applications.efficientnet.EfficientNetB6, 2304)]
 
 
 def keras_test(func):
