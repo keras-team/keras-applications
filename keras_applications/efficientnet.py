@@ -409,11 +409,12 @@ def EfficientNet(width_coefficient,
     # Load weights.
     if weights == 'imagenet':
         if include_top:
-            file_name = model_name + '_weights_tf_dim_ordering_tf_kernels_autoaugment.h5'
+            file_suff = '_weights_tf_dim_ordering_tf_kernels_autoaugment.h5'
             file_hash = WEIGHTS_HASHES[model_name][0]
         else:
-            file_name = model_name + '_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'
+            file_suff = '_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'
             file_hash = WEIGHTS_HASHES[model_name][1]
+        file_name = model_name + file_suff
         weights_path = keras_utils.get_file(file_name,
                                             BASE_WEIGHTS_PATH + file_name,
                                             cache_subdir='models',
