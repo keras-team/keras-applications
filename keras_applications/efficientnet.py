@@ -311,11 +311,6 @@ def EfficientNet(width_coefficient,
         raise ValueError('If using `weights` as `"imagenet"` with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    if weights == 'imagenet' and (model_name not in WEIGHTS_HASHES):
-        raise ValueError('Pre-trained weights are only available for '
-                         'EfficientNet-B0 to -B5, but you requested weights for ' +
-                         model_name + '.')
-
     # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=default_resolution,
