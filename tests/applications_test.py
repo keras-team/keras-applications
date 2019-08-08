@@ -64,14 +64,14 @@ DENSENET_LIST = [(densenet.DenseNet121, 1024),
                  (densenet.DenseNet201, 1920)]
 NASNET_LIST = [(nasnet.NASNetMobile, 1056),
                (nasnet.NASNetLarge, 4032)]
-EFFICIENTNET_LIST = [(keras_applications.efficientnet.EfficientNetB0, 1280, True),
-                     (keras_applications.efficientnet.EfficientNetB1, 1280, True),
-                     (keras_applications.efficientnet.EfficientNetB2, 1408, True),
-                     (keras_applications.efficientnet.EfficientNetB3, 1536, True),
-                     (keras_applications.efficientnet.EfficientNetB4, 1792, True),
-                     (keras_applications.efficientnet.EfficientNetB5, 2048, True),
-                     (keras_applications.efficientnet.EfficientNetB6, 2304, False),
-                     (keras_applications.efficientnet.EfficientNetB7, 2560, False)]
+EFFICIENTNET_LIST = [(keras_applications.efficientnet.EfficientNetB0, 1280),
+                     (keras_applications.efficientnet.EfficientNetB1, 1280),
+                     (keras_applications.efficientnet.EfficientNetB2, 1408),
+                     (keras_applications.efficientnet.EfficientNetB3, 1536),
+                     (keras_applications.efficientnet.EfficientNetB4, 1792),
+                     (keras_applications.efficientnet.EfficientNetB5, 2048),
+                     (keras_applications.efficientnet.EfficientNetB6, 2304),
+                     (keras_applications.efficientnet.EfficientNetB7, 2560)]
 
 
 def keras_test(func):
@@ -283,9 +283,7 @@ def test_nasnet():
 
 
 def test_efficientnet():
-    has_weights = False
-    while not has_weights:
-        app, last_dim, has_weights = random.choice(EFFICIENTNET_LIST)
+    app, last_dim = random.choice(EFFICIENTNET_LIST)
     module = keras_applications.efficientnet
     _test_application_basic(app, module=module)
     _test_application_notop(app, last_dim)

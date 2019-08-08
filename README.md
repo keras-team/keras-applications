@@ -23,7 +23,7 @@ and is distributed under the MIT license.
 
 - The top-k errors were obtained using Keras Applications with the **TensorFlow backend** on the **2012 ILSVRC ImageNet validation set** and may slightly differ from the original ones.
 The input size used was 224x224 for all models except NASNetLarge (331x331), InceptionV3 (299x299), InceptionResNetV2 (299x299), Xception (299x299), EfficientNet-B1 (240x240),
-EfficientNet-B2 (260x260), EfficientNet-B3 (300x300), EfficientNet-B4 (380x380), and EfficientNet-B5 (456x456).
+EfficientNet-B2 (260x260), EfficientNet-B3 (300x300), EfficientNet-B4 (380x380), EfficientNet-B5 (456x456), EfficientNet-B6 (528x528), and EfficientNet-B7 (600x600).
   * Top-1: single center crop, top-1 error
   * Top-5: single center crop, top-5 error
   * 10-5: ten crops (1 center + 4 corners and those mirrored ones), top-5 error
@@ -60,12 +60,14 @@ EfficientNet-B2 (260x260), EfficientNet-B3 (300x300), EfficientNet-B4 (380x380),
 | [DenseNet201](keras_applications/densenet.py)                  | 22.680      | 6.380       | 5.466       | 20.2M  | 18.3M  | [[paper]](https://arxiv.org/abs/1608.06993) [[torch]](https://github.com/liuzhuang13/DenseNet/blob/master/models/densenet.lua) |
 | [NASNetLarge](keras_applications/nasnet.py)                    | 17.502      | 3.996       | 3.412       | 93.5M  | 84.9M  | [[paper]](https://arxiv.org/abs/1707.07012) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/nasnet/nasnet.py) |
 | [NASNetMobile](keras_applications/nasnet.py)                   | 25.634      | 8.146       | 6.758       | 7.7M   | 4.3M   | [[paper]](https://arxiv.org/abs/1707.07012) [[tf-models]](https://github.com/tensorflow/models/blob/master/research/slim/nets/nasnet/nasnet.py) |
-| [EfficientNet-B0](keras_applications/efficientnet.py)          | 23.354      | 6.806       | 6.206       | 5.3M   | 4.0M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
-| [EfficientNet-B1](keras_applications/efficientnet.py)          | 21.296      | 5.796       | 5.326       | 7.9M   | 6.6M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
-| [EfficientNet-B2](keras_applications/efficientnet.py)          | 20.374      | 5.202       | 4.802       | 9.2M   | 7.8M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
-| [EfficientNet-B3](keras_applications/efficientnet.py)          | 19.168      | 4.698       | 4.284       | 12.3M  | 10.8M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
-| [EfficientNet-B4](keras_applications/efficientnet.py)          | 17.446      | 3.908       | 3.554       | 19.5M  | 17.7M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
-| [EfficientNet-B5](keras_applications/efficientnet.py)          | 16.886      | 3.506       | 3.224       | 30.6M  | 28.5M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B0](keras_applications/efficientnet.py)          | 22.810      | 6.508       | 5.858       | 5.3M   | 4.0M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B1](keras_applications/efficientnet.py)          | 20.866      | 5.552       | 5.050       | 7.9M   | 6.6M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B2](keras_applications/efficientnet.py)          | 19.820      | 5.054       | 4.538       | 9.2M   | 7.8M   | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B3](keras_applications/efficientnet.py)          | 18.422      | 4.324       | 3.902       | 12.3M  | 10.8M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B4](keras_applications/efficientnet.py)          | 17.040      | 3.740       | 3.344       | 19.5M  | 17.7M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B5](keras_applications/efficientnet.py)          | 16.298      | 3.290       | 3.114       | 30.6M  | 28.5M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B6](keras_applications/efficientnet.py)          | 15.918      | 3.102       | 2.916       | 43.3M  | 41.0M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
+| [EfficientNet-B7](keras_applications/efficientnet.py)          | 15.570      | 3.160       | 2.906       | 66.7M  | 64.1M  | [[paper]](https://arxiv.org/abs/1905.11946) [[tf-tpu]](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet) |
 
 
 ## Reference implementations from the community
