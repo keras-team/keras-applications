@@ -38,38 +38,22 @@ BASE_WEIGHTS_PATH = (
     'https://github.com/Callidior/keras-applications/'
     'releases/download/efficientnet/')
 WEIGHTS_HASHES = {
-    'efficientnet-b0': ('163292582f1c6eaca8e7dc7b51b01c61'
-                        '5b0dbc0039699b4dcd0b975cc21533dc',
-                        'c1421ad80a9fc67c2cc4000f666aa507'
-                        '89ce39eedb4e06d531b0c593890ccff3'),
-    'efficientnet-b1': ('d0a71ddf51ef7a0ca425bab32b7fa7f1'
-                        '6043ee598ecee73fc674d9560c8f09b0',
-                        '75de265d03ac52fa74f2f510455ba64f'
-                        '9c7c5fd96dc923cd4bfefa3d680c4b68'),
-    'efficientnet-b2': ('bb5451507a6418a574534aa76a91b106'
-                        'f6b605f3b5dde0b21055694319853086',
-                        '433b60584fafba1ea3de07443b74cfd3'
-                        '2ce004a012020b07ef69e22ba8669333'),
-    'efficientnet-b3': ('03f1fba367f070bd2545f081cfa7f3e7'
-                        '6f5e1aa3b6f4db700f00552901e75ab9',
-                        'c5d42eb6cfae8567b418ad3845cfd63a'
-                        'a48b87f1bd5df8658a49375a9f3135c7'),
-    'efficientnet-b4': ('98852de93f74d9833c8640474b2c698d'
-                        'b45ec60690c75b3bacb1845e907bf94f',
-                        '7942c1407ff1feb34113995864970cd4'
-                        'd9d91ea64877e8d9c38b6c1e0767c411'),
-    'efficientnet-b5': ('30172f1d45f9b8a41352d4219bf930ee'
-                        '3339025fd26ab314a817ba8918fefc7d',
-                        '9d197bc2bfe29165c10a2af8c2ebc675'
-                        '07f5d70456f09e584c71b822941b1952'),
-    'efficientnet-b6': ('f5270466747753485a082092ac9939ca'
-                        'a546eb3f09edca6d6fff842cad938720',
-                        '1d0923bb038f2f8060faaf0a0449db4b'
-                        '96549a881747b7c7678724ac79f427ed'),
-    'efficientnet-b7': ('876a41319980638fa597acbbf956a82d'
-                        '10819531ff2dcb1a52277f10c7aefa1a',
-                        '60b56ff3a8daccc8d96edfd40b204c11'
-                        '3e51748da657afd58034d54d3cec2bac')
+    'b0': ('e9e877068bd0af75e0a36691e03c072c',
+           '345255ed8048c2f22c793070a9c1a130'),
+    'b1': ('8f83b9aecab222a9a2480219843049a1',
+           'b20160ab7b79b7a92897fcb33d52cc61'),
+    'b2': ('b6185fdcd190285d516936c09dceeaa4',
+           'c6e46333e8cddfa702f4d8b8b6340d70'),
+    'b3': ('b2db0f8aac7c553657abb2cb46dcbfbb',
+           'e0cf8654fad9d3625190e30d70d0c17d'),
+    'b4': ('ab314d28135fe552e2f9312b31da6926',
+           'b46702e4754d2022d62897e0618edc7b'),
+    'b5': ('8d60b903aff50b09c6acf8eaba098e09',
+           '0a839ac36e46552a881f2975aaab442f'),
+    'b6': ('a967457886eac4f5ab44139bdd827920',
+           '375a35c17ef70d46f9c664b03b4437f2'),
+    'b7': ('e964fd6e26e9a4c144bcb811f2a10f20',
+           'd55674cc46b805f4382d18bc08ed43c1')
 }
 
 
@@ -412,10 +396,10 @@ def EfficientNet(width_coefficient,
     if weights == 'imagenet':
         if include_top:
             file_suff = '_weights_tf_dim_ordering_tf_kernels_autoaugment.h5'
-            file_hash = WEIGHTS_HASHES[model_name][0]
+            file_hash = WEIGHTS_HASHES[model_name[-2:]][0]
         else:
             file_suff = '_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'
-            file_hash = WEIGHTS_HASHES[model_name][1]
+            file_hash = WEIGHTS_HASHES[model_name[-2:]][1]
         file_name = model_name + file_suff
         weights_path = keras_utils.get_file(file_name,
                                             BASE_WEIGHTS_PATH + file_name,
