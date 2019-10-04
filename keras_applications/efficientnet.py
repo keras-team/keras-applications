@@ -23,7 +23,9 @@ import numpy as np
 from six.moves import xrange
 
 from . import get_submodules_from_kwargs
-from .imagenet_utils import _obtain_input_shape, decode_predictions
+from . import imagenet_utils
+from .imagenet_utils import decode_predictions
+from .imagenet_utils import _obtain_input_shape
 
 
 backend = None
@@ -69,9 +71,6 @@ WEIGHTS_HASHES = {
                         '60b56ff3a8daccc8d96edfd40b204c11'
                         '3e51748da657afd58034d54d3cec2bac')
 }
-
-MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
-STDDEV_RGB = [0.229 * 255, 0.224 * 255, 0.225 * 255]
 
 
 BlockArgs = collections.namedtuple('BlockArgs', [
@@ -549,6 +548,20 @@ def EfficientNetB7(include_top=True,
                         **kwargs)
 
 
+def preprocess_input(x, data_format=None, **kwargs):
+    """Preprocesses a numpy array encoding a batch of images.
+
+    # Arguments
+        x: a 3D or 4D numpy array consists of RGB values within [0, 255].
+        data_format: data format of the image tensor.
+
+    # Returns
+        Preprocessed array.
+    """
+    return imagenet_utils.preprocess_input(x, data_format,
+                                           mode='torch', **kwargs)
+
+
 setattr(EfficientNetB0, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB1, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB2, '__doc__', EfficientNet.__doc__)
@@ -557,32 +570,3 @@ setattr(EfficientNetB4, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB5, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB6, '__doc__', EfficientNet.__doc__)
 setattr(EfficientNetB7, '__doc__', EfficientNet.__doc__)
-
-
-def preprocess_input(x, **kwargs):
-    """Preprocesses a numpy array encoding a batch of images.
-    # Arguments
-        x: a 4D numpy array consists of RGB values within [0, 255].
-    # Returns
-        Preprocessed array.
-    """
-
-    backend, _, _, _ = get_submodules_from_kwargs(kwargs)
-
-    if isinstance(x, np.ndarray):
-
-        if not issubclass(x.dtype.type, np.floating):
-            x = x.astype(backend.floatx(), copy=False)
-        return (x - MEAN_RGB) / STDDEV_RGB
-
-    else:
-
-        mean_tensor = backend.constant(-np.array(MEAN_RGB))
-
-        # Zero-center by mean pixel
-        if backend.dtype(x) != backend.dtype(mean_tensor):
-            x = backend.bias_add(
-                x, backend.cast(mean_tensor, backend.dtype(x)))
-        else:
-            x = backend.bias_add(x, mean_tensor)
-        return x / STDDEV_RGB
