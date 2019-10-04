@@ -57,30 +57,21 @@ WEIGHTS_HASHES = {
 }
 
 
-BlockArgs = collections.namedtuple('BlockArgs', [
-    'kernel_size', 'num_repeat', 'input_filters', 'output_filters',
-    'expand_ratio', 'id_skip', 'strides', 'se_ratio'
-])
-# defaults will be a public argument for namedtuple in Python 3.7
-# https://docs.python.org/3/library/collections.html#collections.namedtuple
-BlockArgs.__new__.__defaults__ = (None,) * len(BlockArgs._fields)
-
-
 DEFAULT_BLOCKS_ARGS = [
-    BlockArgs(kernel_size=3, num_repeat=1, input_filters=32, output_filters=16,
-              expand_ratio=1, id_skip=True, strides=[1, 1], se_ratio=0.25),
-    BlockArgs(kernel_size=3, num_repeat=2, input_filters=16, output_filters=24,
-              expand_ratio=6, id_skip=True, strides=[2, 2], se_ratio=0.25),
-    BlockArgs(kernel_size=5, num_repeat=2, input_filters=24, output_filters=40,
-              expand_ratio=6, id_skip=True, strides=[2, 2], se_ratio=0.25),
-    BlockArgs(kernel_size=3, num_repeat=3, input_filters=40, output_filters=80,
-              expand_ratio=6, id_skip=True, strides=[2, 2], se_ratio=0.25),
-    BlockArgs(kernel_size=5, num_repeat=3, input_filters=80, output_filters=112,
-              expand_ratio=6, id_skip=True, strides=[1, 1], se_ratio=0.25),
-    BlockArgs(kernel_size=5, num_repeat=4, input_filters=112, output_filters=192,
-              expand_ratio=6, id_skip=True, strides=[2, 2], se_ratio=0.25),
-    BlockArgs(kernel_size=3, num_repeat=1, input_filters=192, output_filters=320,
-              expand_ratio=6, id_skip=True, strides=[1, 1], se_ratio=0.25)
+    {'kernel_size': 3, 'repeats': 1, 'filters_in': 32, 'filters_out': 16,
+     'expand_ratio': 1, 'id_skip': True, 'strides': [1, 1], 'se_ratio': 0.25},
+    {'kernel_size': 3, 'repeats': 2, 'filters_in': 16, 'filters_out': 24,
+     'expand_ratio': 6, 'id_skip': True, 'strides': [2, 2], 'se_ratio': 0.25},
+    {'kernel_size': 5, 'repeats': 2, 'filters_in': 24, 'filters_out': 40,
+     'expand_ratio': 6, 'id_skip': True, 'strides': [2, 2], 'se_ratio': 0.25},
+    {'kernel_size': 3, 'repeats': 3, 'filters_in': 40, 'filters_out': 80,
+     'expand_ratio': 6, 'id_skip': True, 'strides': [2, 2], 'se_ratio': 0.25},
+    {'kernel_size': 5, 'repeats': 3, 'filters_in': 80, 'filters_out': 112,
+     'expand_ratio': 6, 'id_skip': True, 'strides': [1, 1], 'se_ratio': 0.25},
+    {'kernel_size': 5, 'repeats': 4, 'filters_in': 112, 'filters_out': 192,
+     'expand_ratio': 6, 'id_skip': True, 'strides': [2, 2], 'se_ratio': 0.25},
+    {'kernel_size': 3, 'repeats': 1, 'filters_in': 192, 'filters_out': 320,
+     'expand_ratio': 6, 'id_skip': True, 'strides': [1, 1], 'se_ratio': 0.25}
 ]
 
 CONV_KERNEL_INITIALIZER = {
@@ -144,12 +135,12 @@ def round_repeats(repeats, depth_coefficient):
 def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
     """Mobile Inverted Residual Bottleneck."""
 
-    has_se = (block_args.se_ratio is not None) and (0 < block_args.se_ratio <= 1)
+    has_se = (block_args['se_ratio'] is not None) and (0 < block_args['se_ratio'] <= 1)
     bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
 
     # Expansion phase
-    filters = block_args.input_filters * block_args.expand_ratio
-    if block_args.expand_ratio != 1:
+    filters = block_args['filters_in'] * block_args['expand_ratio']
+    if block_args['expand_ratio'] != 1:
         x = layers.Conv2D(filters, 1,
                           padding='same',
                           use_bias=False,
@@ -161,8 +152,8 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
         x = inputs
 
     # Depthwise Convolution
-    x = layers.DepthwiseConv2D(block_args.kernel_size,
-                               strides=block_args.strides,
+    x = layers.DepthwiseConv2D(block_args['kernel_size'],
+                               strides=block_args['strides'],
                                padding='same',
                                use_bias=False,
                                depthwise_initializer=CONV_KERNEL_INITIALIZER,
@@ -173,7 +164,7 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
     # Squeeze and Excitation phase
     if has_se:
         num_reduced_filters = max(1, int(
-            block_args.input_filters * block_args.se_ratio
+            block_args['filters_in'] * block_args['se_ratio']
         ))
         se_tensor = layers.GlobalAveragePooling2D(name=prefix + 'se_squeeze')(x)
         se_tensor = layers.Reshape((1, 1, filters),
@@ -199,15 +190,15 @@ def mb_conv_block(inputs, block_args, drop_rate=None, relu_fn=swish, prefix=''):
         x = layers.multiply([x, se_tensor], name=prefix + 'se_excite')
 
     # Output phase
-    x = layers.Conv2D(block_args.output_filters, 1,
+    x = layers.Conv2D(block_args['filters_out'], 1,
                       padding='same',
                       use_bias=False,
                       kernel_initializer=CONV_KERNEL_INITIALIZER,
                       name=prefix + 'project_conv')(x)
     x = layers.BatchNormalization(axis=bn_axis, name=prefix + 'project_bn')(x)
-    if block_args.id_skip and all(
-            s == 1 for s in block_args.strides
-    ) and block_args.input_filters == block_args.output_filters:
+    if block_args['id_skip'] and all(
+            s == 1 for s in block_args['strides']
+    ) and block_args['filters_in'] == block_args['filters_out']:
         if drop_rate and (drop_rate > 0):
             x = layers.Dropout(drop_rate,
                                noise_shape=(None, 1, 1, 1),
@@ -324,17 +315,20 @@ def EfficientNet(width_coefficient,
     x = layers.Activation(relu_fn, name='stem_activation')(x)
 
     # Build blocks
-    num_blocks_total = sum(block_args.num_repeat for block_args in blocks_args)
+    from copy import deepcopy
+    blocks_args = deepcopy(blocks_args)
+
+    num_blocks_total = sum(block_args['repeats'] for block_args in blocks_args)
     block_num = 0
     for idx, block_args in enumerate(blocks_args):
-        assert block_args.num_repeat > 0
+        assert block_args['repeats'] > 0
         # Update block input and output filters based on depth multiplier.
-        block_args = block_args._replace(
-            input_filters=round_filters(block_args.input_filters,
-                                        width_coefficient, depth_divisor),
-            output_filters=round_filters(block_args.output_filters,
-                                         width_coefficient, depth_divisor),
-            num_repeat=round_repeats(block_args.num_repeat, depth_coefficient))
+        block_args['filters_in'] = round_filters(
+            block_args['filters_in'], width_coefficient, depth_divisor)
+        block_args['filters_out'] = round_filters(
+            block_args['filters_out'], width_coefficient, depth_divisor)
+        block_args['repeats'] = round_repeats(
+            block_args['repeats'], depth_coefficient)
 
         # The first block needs to take care of stride and filter size increase.
         drop_rate = drop_connect_rate * float(block_num) / num_blocks_total
@@ -343,12 +337,10 @@ def EfficientNet(width_coefficient,
                           drop_rate=drop_rate,
                           prefix='block{}a_'.format(idx + 1))
         block_num += 1
-        if block_args.num_repeat > 1:
-            # pylint: disable=protected-access
-            block_args = block_args._replace(
-                input_filters=block_args.output_filters, strides=[1, 1])
-            # pylint: enable=protected-access
-            for bidx in xrange(block_args.num_repeat - 1):
+        if block_args['repeats'] > 1:
+            block_args['filters_in'] = block_args['filters_out']
+            block_args['strides'] = [1, 1]
+            for bidx in xrange(block_args['repeats'] - 1):
                 drop_rate = drop_connect_rate * float(block_num) / num_blocks_total
                 block_prefix = 'block{}{}_'.format(
                     idx + 1,
