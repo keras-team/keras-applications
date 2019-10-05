@@ -38,7 +38,7 @@ install:
 
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pytest pandas
   - source activate test-environment
-  - pip install --only-binary=numpy,scipy numpy nose scipy matplotlib h5py theano keras
+  - pip install --only-binary=numpy,scipy numpy nose scipy matplotlib h5py theano keras==2.2.4
   - conda install mkl mkl-service
 
   # set library path
@@ -51,9 +51,9 @@ install:
       conda install Pillow;
     fi
 
-  - if [[ $KERAS_HEAD == "true" ]]; then
-      pip install --no-deps git+https://github.com/keras-team/keras.git;
-    fi
+  #- if [[ $KERAS_HEAD == "true" ]]; then
+  #    pip install --no-deps git+https://github.com/keras-team/keras.git;
+  #  fi
   - pip install -e .[tests]
 
   # install TensorFlow (CPU version).
