@@ -191,6 +191,7 @@ def block(inputs, drop_rate=None, activation_fn=swish, name='', **kwargs):
             # the excitation weights broadcastable.
             se_tensor = layers.Lambda(
                 lambda x: backend.pattern_broadcast(x, [True, True, True, False]),
+                output_shape=lambda input_shape: input_shape,
                 name=name + 'se_broadcast')(se_tensor)
         x = layers.multiply([x, se_tensor], name=name + 'se_excite')
 
