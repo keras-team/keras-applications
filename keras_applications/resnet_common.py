@@ -228,17 +228,15 @@ def block3(x, filters, kernel_size=3, stride=1, groups=32,
     x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name=name + '_2_pad')(x)
     x = layers.DepthwiseConv2D(kernel_size, strides=stride, depth_multiplier=c,
                                use_bias=False, name=name + '_2_conv')(x)
-    if backend.backend() == 'theano':
-        x_shape = backend.int_shape(x)[1:-1] + (filters,)
-    else:
-        x_shape = None
     kernel = np.zeros((1, 1, filters * c, filters), dtype=np.float32)
     for i in range(filters):
         start = (i // c) * c * c + i % c
         end = start + c * c
         kernel[:, :, start:end:c, i] = 1.
-    x = layers.Lambda(lambda x: backend.conv2d(x, backend.variable(kernel)),
-                      output_shape=x_shape, name=name + '_2_reduce')(x)
+    x = layers.Conv2D(filters, 1, use_bias=False, trainable=False,
+                      kernel_initializer={'class_name': 'Constant',
+                                          'config': {'value': kernel}},
+                      name=name + '_2_gconv')(x)
     x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5,
                                   name=name + '_2_bn')(x)
     x = layers.Activation('relu', name=name + '_2_relu')(x)
@@ -414,7 +412,8 @@ def ResNet(stack_fn,
                                             BASE_WEIGHTS_PATH + file_name,
                                             cache_subdir='models',
                                             file_hash=file_hash)
-        model.load_weights(weights_path)
+        by_name = True if 'resnext' in model_name else False
+        model.load_weights(weights_path, by_name=by_name)
     elif weights is not None:
         model.load_weights(weights)
 
