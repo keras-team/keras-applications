@@ -17,6 +17,7 @@ from __future__ import print_function
 import os
 import math
 
+from . import correct_pad
 from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
@@ -152,9 +153,15 @@ def block(inputs, activation_fn=swish, drop_rate=0., name='',
         x = inputs
 
     # Depthwise Convolution
+    if strides == 2:
+        x = layers.ZeroPadding2D(padding=correct_pad(backend, x, kernel_size),
+                                 name=name + 'dwconv_pad')(x)
+        conv_pad = 'valid'
+    else:
+        conv_pad = 'same'
     x = layers.DepthwiseConv2D(kernel_size,
                                strides=strides,
-                               padding='same',
+                               padding=conv_pad,
                                use_bias=False,
                                depthwise_initializer=CONV_KERNEL_INITIALIZER,
                                name=name + 'dwconv')(x)
@@ -313,9 +320,11 @@ def EfficientNet(width_coefficient,
 
     # Build stem
     x = img_input
+    x = layers.ZeroPadding2D(padding=correct_pad(backend, x, 3),
+                             name='stem_conv_pad')(x)
     x = layers.Conv2D(round_filters(32), 3,
                       strides=2,
-                      padding='same',
+                      padding='valid',
                       use_bias=False,
                       kernel_initializer=CONV_KERNEL_INITIALIZER,
                       name='stem_conv')(x)
