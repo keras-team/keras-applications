@@ -26,6 +26,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import numpy as np
 
 from . import get_submodules_from_kwargs
 from .imagenet_utils import _obtain_input_shape
@@ -227,12 +228,15 @@ def block3(x, filters, kernel_size=3, stride=1, groups=32,
     x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name=name + '_2_pad')(x)
     x = layers.DepthwiseConv2D(kernel_size, strides=stride, depth_multiplier=c,
                                use_bias=False, name=name + '_2_conv')(x)
-    x_shape = backend.int_shape(x)[1:-1]
-    x = layers.Reshape(x_shape + (groups, c, c))(x)
-    output_shape = x_shape + (groups, c) if backend.backend() == 'theano' else None
-    x = layers.Lambda(lambda x: sum([x[:, :, :, :, i] for i in range(c)]),
-                      output_shape=output_shape, name=name + '_2_reduce')(x)
-    x = layers.Reshape(x_shape + (filters,))(x)
+    kernel = np.zeros((1, 1, filters * c, filters), dtype=np.float32)
+    for i in range(filters):
+        start = (i // c) * c * c + i % c
+        end = start + c * c
+        kernel[:, :, start:end:c, i] = 1.
+    x = layers.Conv2D(filters, 1, use_bias=False, trainable=False,
+                      kernel_initializer={'class_name': 'Constant',
+                                          'config': {'value': kernel}},
+                      name=name + '_2_gconv')(x)
     x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5,
                                   name=name + '_2_bn')(x)
     x = layers.Activation('relu', name=name + '_2_relu')(x)
@@ -408,7 +412,8 @@ def ResNet(stack_fn,
                                             BASE_WEIGHTS_PATH + file_name,
                                             cache_subdir='models',
                                             file_hash=file_hash)
-        model.load_weights(weights_path)
+        by_name = True if 'resnext' in model_name else False
+        model.load_weights(weights_path, by_name=by_name)
     elif weights is not None:
         model.load_weights(weights)
 

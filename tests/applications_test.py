@@ -204,7 +204,11 @@ def test_resnetv2():
 def test_resnext():
     app = random.choice(RESNEXT_LIST)
     module = keras_applications.resnext
+    last_dim = 2048
     _test_application_basic(app, module=module)
+    _test_application_notop(app, last_dim)
+    _test_application_variable_input_channels(app, last_dim)
+    _test_app_pooling(app, last_dim)
 
 
 def test_vgg():
