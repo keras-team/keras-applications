@@ -40,7 +40,8 @@ def keras_modules_injection(base_fun):
 for (name, module) in [('resnet', keras_applications.resnet),
                        ('resnet_v2', keras_applications.resnet_v2),
                        ('resnext', keras_applications.resnext),
-                       ('efficientnet', keras_applications.efficientnet)]:
+                       ('efficientnet', keras_applications.efficientnet),
+                       ('mobilenet_v3', keras_applications.mobilenet_v3)]:
     module.decode_predictions = keras_modules_injection(module.decode_predictions)
     module.preprocess_input = keras_modules_injection(module.preprocess_input)
     for app in dir(module):
@@ -260,6 +261,15 @@ def test_inceptionresnetv2():
 
 def test_mobilenet():
     app, module, last_dim = random.choice(MOBILENET_LIST)
+    _test_application_basic(app, module=module)
+    _test_application_notop(app, last_dim)
+    _test_application_variable_input_channels(app, last_dim)
+    _test_app_pooling(app, last_dim)
+
+
+def test_mobilenetv3():
+    app, last_dim = keras_applications.mobilenet_v3.MobileNetV3, 960
+    module = keras_applications.mobilenet_v3
     _test_application_basic(app, module=module)
     _test_application_notop(app, last_dim)
     _test_application_variable_input_channels(app, last_dim)
