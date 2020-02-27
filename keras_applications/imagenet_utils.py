@@ -204,8 +204,7 @@ def decode_predictions(preds, top=5, **kwargs):
         One list of tuples per sample in batch input.
 
     # Raises
-        ValueError: In case of invalid shape of the `pred` array
-            (must be 2D).
+        ValueError: In case of invalid argument values.
     """
     global CLASS_INDEX
 
