@@ -43,8 +43,7 @@ def _preprocess_numpy_input(x, data_format, mode, **kwargs):
         x /= 127.5
         x -= 1.
         return x
-
-    if mode == 'torch':
+    elif mode == 'torch':
         x /= 255.
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
@@ -117,8 +116,7 @@ def _preprocess_symbolic_input(x, data_format, mode, **kwargs):
         x /= 127.5
         x -= 1.
         return x
-
-    if mode == 'torch':
+    elif mode == 'torch':
         x /= 255.
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
@@ -158,7 +156,7 @@ def preprocess_input(x, data_format=None, mode='caffe', **kwargs):
             if the data types are compatible. To avoid this
             behaviour, `numpy.copy(x)` can be used.
         data_format: Data format of the image tensor/array.
-        mode: One of "caffe", "tf" or "torch".
+        mode: One of "caffe", "tf" or "torch". Defaults to "caffe".
             - caffe: will convert the images from RGB to BGR,
                 then will zero-center each color channel with
                 respect to the ImageNet dataset,
@@ -176,6 +174,9 @@ def preprocess_input(x, data_format=None, mode='caffe', **kwargs):
         ValueError: In case of unknown `data_format` argument.
     """
     backend, _, _, _ = get_submodules_from_kwargs(kwargs)
+
+    if mode not in {'caffe', 'tf','torch'}:
+        raise ValueError('Unknown mode ' + str(mode))
 
     if data_format is None:
         data_format = backend.image_data_format()
