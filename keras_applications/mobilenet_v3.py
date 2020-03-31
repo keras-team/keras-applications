@@ -33,18 +33,40 @@ from __future__ import print_function
 import os
 import warnings
 
+from . import correct_pad
 from . import get_submodules_from_kwargs
 from . import imagenet_utils
 from .imagenet_utils import _obtain_input_shape
 from .imagenet_utils import decode_predictions
 
-BASE_WEIGHT_PATH = ('https://github.com/DrSlink/mobilenet_v3_keras/'
-                    'releases/download/v1.0/')
 
 backend = None
 layers = None
 models = None
 keras_utils = None
+
+BASE_WEIGHT_PATH = ('https://github.com/DrSlink/mobilenet_v3_keras/'
+                    'releases/download/v1.0/')
+WEIGHTS_HASHES = {
+    'large_224_0.75_float': (
+        '765b44a33ad4005b3ac83185abf1d0eb',
+        'c256439950195a46c97ede7c294261c6'),
+    'large_224_1.0_float': (
+        '59e551e166be033d707958cf9e29a6a7',
+        '12c0a8442d84beebe8552addf0dcb950'),
+    'large_minimalistic_224_1.0_float': (
+        '675e7b876c45c57e9e63e6d90a36599c',
+        'c1cddbcde6e26b60bdce8e6e2c7cae54'),
+    'small_224_0.75_float': (
+        'cb65d4e5be93758266aa0a7f2c6708b7',
+        'c944bb457ad52d1594392200b48b4ddb'),
+    'small_224_1.0_float': (
+        '8768d4c2e7dee89b9d02b2d03d65d862',
+        '5bec671f47565ab30e540c257bba8591'),
+    'small_minimalistic_224_1.0_float': (
+        '99cd97fb2fcdad2bf028eb838de69e37',
+        '1efbf7e822e03f250f45faa3c6bbe156'),
+}
 
 
 def preprocess_input(x, **kwargs):
@@ -59,19 +81,16 @@ def preprocess_input(x, **kwargs):
     return imagenet_utils.preprocess_input(x, mode='tf', **kwargs)
 
 
+def relu(x):
+    return layers.ReLU()(x)
+
+
 def hard_sigmoid(x):
     return layers.ReLU(6.)(x + 3.) * (1. / 6.)
 
 
 def hard_swish(x):
     return layers.Multiply()([layers.Activation(hard_sigmoid)(x), x])
-
-
-def _activation(x, name='relu'):
-    if name == 'relu':
-        return layers.ReLU()(x)
-    elif name == 'hardswish':
-        return hard_swish(x)
 
 
 # This function is taken from the original tf repo.
@@ -81,7 +100,7 @@ def _activation(x, name='relu'):
 # slim/nets/mobilenet/mobilenet.py
 
 
-def _make_divisible(v, divisor, min_value=None):
+def _depth(v, divisor=8, min_value=None):
     if min_value is None:
         min_value = divisor
     new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
@@ -91,77 +110,79 @@ def _make_divisible(v, divisor, min_value=None):
     return new_v
 
 
-def _inverted_res_block(inputs, expansion, alpha, out_ch, kernel_size, stride,
-                        se_ratio, activation, regularizer, block_id):
-    channel_axis = 1 if backend.image_data_format() == 'channels_first' else -1
+def _se_block(inputs, filters, se_ratio, prefix):
+    x = layers.GlobalAveragePooling2D(name=prefix + 'squeeze_excite/AvgPool')(inputs)
+    x = layers.Reshape((1, 1, filters))(x)
+    x = layers.Conv2D(_depth(filters * se_ratio),
+                      kernel_size=1,
+                      padding='same',
+                      name=prefix + 'squeeze_excite/Conv')(x)
+    x = layers.ReLU(name=prefix + 'squeeze_excite/Relu')(x)
+    x = layers.Conv2D(filters,
+                      kernel_size=1,
+                      padding='same',
+                      name=prefix + 'squeeze_excite/Conv_1')(x)
+    x = layers.Activation(hard_sigmoid)(x)
+    if backend.backend() == 'theano':
+        # For the Theano backend, we have to explicitly make
+        # the excitation weights broadcastable.
+        x = layers.Lambda(
+            lambda br: backend.pattern_broadcast(br, [True, True, True, False]),
+            output_shape=lambda input_shape: input_shape,
+            name=prefix + 'squeeze_excite/broadcast')(x)
+    x = layers.Multiply(name=prefix + 'squeeze_excite/Mul')([inputs, x])
+    return x
 
-    in_channels = backend.int_shape(inputs)[channel_axis]
-    out_channels = _make_divisible(out_ch * alpha, 8)
-    exp_size = _make_divisible(in_channels * expansion, 8)
-    x = inputs
+
+def _inverted_res_block(x, expansion, filters, kernel_size, stride,
+                        se_ratio, activation, block_id):
+    channel_axis = 1 if backend.image_data_format() == 'channels_first' else -1
+    shortcut = x
     prefix = 'expanded_conv/'
+    infilters = backend.int_shape(x)[channel_axis]
     if block_id:
         # Expand
         prefix = 'expanded_conv_{}/'.format(block_id)
-        x = layers.Conv2D(exp_size,
+        x = layers.Conv2D(_depth(infilters * expansion),
                           kernel_size=1,
                           padding='same',
-                          kernel_regularizer=regularizer,
                           use_bias=False,
                           name=prefix + 'expand')(x)
         x = layers.BatchNormalization(axis=channel_axis,
+                                      epsilon=1e-3,
+                                      momentum=0.999,
                                       name=prefix + 'expand/BatchNorm')(x)
-        x = _activation(x, activation)
+        x = layers.Activation(activation)(x)
 
+    if stride == 2:
+        x = layers.ZeroPadding2D(padding=correct_pad(backend, x, kernel_size),
+                                 name=prefix + 'depthwise/pad')(x)
     x = layers.DepthwiseConv2D(kernel_size,
                                strides=stride,
-                               padding='same',
-                               dilation_rate=1,
-                               depthwise_regularizer=regularizer,
+                               padding='same' if stride == 1 else 'valid',
                                use_bias=False,
                                name=prefix + 'depthwise')(x)
     x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
+                                  momentum=0.999,
                                   name=prefix + 'depthwise/BatchNorm')(x)
-    x = _activation(x, activation)
+    x = layers.Activation(activation)(x)
 
     if se_ratio:
-        reduced_ch = _make_divisible(exp_size * se_ratio, 8)
-        y = layers.GlobalAveragePooling2D(name=prefix + 'squeeze_excite/AvgPool')(x)
-        y = layers.Reshape((1, 1, exp_size))(y)
-        y = layers.Conv2D(reduced_ch,
-                          kernel_size=1,
-                          padding='same',
-                          kernel_regularizer=regularizer,
-                          use_bias=True,
-                          name=prefix + 'squeeze_excite/Conv')(y)
-        y = layers.ReLU(name=prefix + 'squeeze_excite/Relu')(y)
-        y = layers.Conv2D(exp_size,
-                          kernel_size=1,
-                          padding='same',
-                          kernel_regularizer=regularizer,
-                          use_bias=True,
-                          name=prefix + 'squeeze_excite/Conv_1')(y)
-        y = layers.Activation(hard_sigmoid)(y)
-        if backend.backend() == 'theano':
-            # For the Theano backend, we have to explicitly make
-            # the excitation weights broadcastable.
-            y = layers.Lambda(
-                lambda br: backend.pattern_broadcast(br, [True, True, True, False]),
-                output_shape=lambda input_shape: input_shape,
-                name=prefix + 'squeeze_excite/broadcast')(y)
-        x = layers.Multiply(name=prefix + 'squeeze_excite/Mul')([y, x])
+        x = _se_block(x, _depth(infilters * expansion), se_ratio, prefix)
 
-    x = layers.Conv2D(out_channels,
+    x = layers.Conv2D(filters,
                       kernel_size=1,
                       padding='same',
-                      kernel_regularizer=regularizer,
                       use_bias=False,
                       name=prefix + 'project')(x)
     x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
+                                  momentum=0.999,
                                   name=prefix + 'project/BatchNorm')(x)
 
-    if in_channels == out_channels and stride == 1:
-        x = layers.Add(name=prefix + 'Add')([inputs, x])
+    if stride == 1 and infilters == filters:
+        x = layers.Add(name=prefix + 'Add')([shortcut, x])
     return x
 
 
@@ -177,7 +198,6 @@ def MobileNetV3(stack_fn,
                 classes=1000,
                 pooling=None,
                 dropout_rate=0.2,
-                regularizer=None,
                 **kwargs):
     """Instantiates the MobileNetV3 architecture.
 
@@ -235,7 +255,6 @@ def MobileNetV3(stack_fn,
             - `max` means that global max pooling will
                 be applied.
         dropout_rate: fraction of the input units to drop on the last layer
-        regularizer: wich regularizer to use on each conv2d layer (in paper l2(1e-5))
     # Returns
         A Keras model instance.
 
@@ -340,43 +359,46 @@ def MobileNetV3(stack_fn,
 
     if minimalistic:
         kernel = 3
-        activation = 'relu'
+        activation = relu
         se_ratio = None
     else:
         kernel = 5
-        activation = 'hardswish'
+        activation = hard_swish
         se_ratio = 0.25
 
+    x = layers.ZeroPadding2D(padding=correct_pad(backend, img_input, 3),
+                             name='Conv_pad')(img_input)
     x = layers.Conv2D(16,
                       kernel_size=3,
                       strides=(2, 2),
-                      padding='same',
-                      kernel_regularizer=regularizer,
+                      padding='valid',
                       use_bias=False,
-                      name='Conv')(img_input)
+                      name='Conv')(x)
     x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
+                                  momentum=0.999,
                                   name='Conv/BatchNorm')(x)
-    x = _activation(x, name=activation)
+    x = layers.Activation(activation)(x)
 
     x = stack_fn(x, kernel, activation, se_ratio)
 
-    last_conv_ch = _make_divisible(backend.int_shape(x)[channel_axis] * 6, 8)
+    last_conv_ch = _depth(backend.int_shape(x)[channel_axis] * 6)
 
     # if the width multiplier is greater than 1 we
     # increase the number of output channels
     if alpha > 1.0:
-        last_point_ch = _make_divisible(last_point_ch * alpha, 8)
+        last_point_ch = _depth(last_point_ch * alpha)
 
     x = layers.Conv2D(last_conv_ch,
                       kernel_size=1,
-                      strides=1,
                       padding='same',
-                      kernel_regularizer=regularizer,
                       use_bias=False,
                       name='Conv_1')(x)
     x = layers.BatchNormalization(axis=channel_axis,
+                                  epsilon=1e-3,
+                                  momentum=0.999,
                                   name='Conv_1/BatchNorm')(x)
-    x = _activation(x, name=activation)
+    x = layers.Activation(activation)(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D()(x)
@@ -384,18 +406,13 @@ def MobileNetV3(stack_fn,
         x = layers.Conv2D(last_point_ch,
                           kernel_size=1,
                           padding='same',
-                          kernel_regularizer=regularizer,
-                          bias_regularizer=regularizer,
                           name='Conv_2')(x)
-        x = _activation(x, name=activation)
+        x = layers.Activation(activation)(x)
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate)(x)
         x = layers.Conv2D(classes,
                           kernel_size=1,
                           padding='same',
-                          use_bias=True,
-                          kernel_regularizer=regularizer,
-                          bias_regularizer=regularizer,
                           name='Logits')(x)
         x = layers.Flatten()(x)
         x = layers.Softmax(name='Predictions/Softmax')(x)
@@ -416,16 +433,18 @@ def MobileNetV3(stack_fn,
 
     # Load weights.
     if weights == 'imagenet':
-        model_name = 'weights_mobilenet_v3_' + model_type
-        if minimalistic:
-            model_name += '_minimalistic'
-        model_name += '_224_' + str(alpha) + '_float'
-        if not include_top:
-            model_name += '_no_top'
-        model_name += '.h5'
-        weight_path = BASE_WEIGHT_PATH + model_name
-        weights_path = keras_utils.get_file(model_name, weight_path,
-                                            cache_subdir='models')
+        model_name = "{}{}_224_{}_float".format(
+            model_type, '_minimalistic' if minimalistic else '', str(alpha))
+        if include_top:
+            file_name = 'weights_mobilenet_v3_' + model_name + '.h5'
+            file_hash = WEIGHTS_HASHES[model_name][0]
+        else:
+            file_name = 'weights_mobilenet_v3_' + model_name + '_no_top.h5'
+            file_hash = WEIGHTS_HASHES[model_name][1]
+        weights_path = keras_utils.get_file(file_name,
+                                            BASE_WEIGHT_PATH + file_name,
+                                            cache_subdir='models',
+                                            file_hash=file_hash)
         model.load_weights(weights_path)
     elif weights is not None:
         model.load_weights(weights)
@@ -442,33 +461,22 @@ def MobileNetV3Small(input_shape=None,
                      classes=1000,
                      pooling=None,
                      dropout_rate=0.2,
-                     regularizer=None,
                      **kwargs):
     def stack_fn(x, kernel, activation, se_ratio):
-        x = _inverted_res_block(x, 1, 16, alpha, 3, 2, se_ratio,
-                                'relu', regularizer, 0)
-        x = _inverted_res_block(x, 4.5, 24, alpha, 3, 2, None,
-                                'relu', regularizer, 1)
-        x = _inverted_res_block(x, 3.66, 24, alpha, 3, 1, None,
-                                'relu', regularizer, 2)
-        x = _inverted_res_block(x, 4, 40, alpha, kernel, 2, se_ratio,
-                                activation, regularizer, 3)
-        x = _inverted_res_block(x, 6, 40, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 4)
-        x = _inverted_res_block(x, 6, 40, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 5)
-        x = _inverted_res_block(x, 3, 48, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 6)
-        x = _inverted_res_block(x, 3, 48, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 7)
-        x = _inverted_res_block(x, 6, 96, alpha, kernel, 2, se_ratio,
-                                activation, regularizer, 8)
-        x = _inverted_res_block(x, 6, 96, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 9)
-        x = _inverted_res_block(x, 6, 96, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 10)
+        def depth(d):
+            return _depth(d * alpha)
+        x = _inverted_res_block(x, 1, depth(16), 3, 2, se_ratio, relu, 0)
+        x = _inverted_res_block(x, 72./16, depth(24), 3, 2, None, relu, 1)
+        x = _inverted_res_block(x, 88./24, depth(24), 3, 1, None, relu, 2)
+        x = _inverted_res_block(x, 4, depth(40), kernel, 2, se_ratio, activation, 3)
+        x = _inverted_res_block(x, 6, depth(40), kernel, 1, se_ratio, activation, 4)
+        x = _inverted_res_block(x, 6, depth(40), kernel, 1, se_ratio, activation, 5)
+        x = _inverted_res_block(x, 3, depth(48), kernel, 1, se_ratio, activation, 6)
+        x = _inverted_res_block(x, 3, depth(48), kernel, 1, se_ratio, activation, 7)
+        x = _inverted_res_block(x, 6, depth(96), kernel, 2, se_ratio, activation, 8)
+        x = _inverted_res_block(x, 6, depth(96), kernel, 1, se_ratio, activation, 9)
+        x = _inverted_res_block(x, 6, depth(96), kernel, 1, se_ratio, activation, 10)
         return x
-
     return MobileNetV3(stack_fn,
                        1024,
                        input_shape,
@@ -481,7 +489,6 @@ def MobileNetV3Small(input_shape=None,
                        classes,
                        pooling,
                        dropout_rate,
-                       regularizer,
                        **kwargs)
 
 
@@ -494,41 +501,26 @@ def MobileNetV3Large(input_shape=None,
                      classes=1000,
                      pooling=None,
                      dropout_rate=0.2,
-                     regularizer=None,
                      **kwargs):
     def stack_fn(x, kernel, activation, se_ratio):
-        x = _inverted_res_block(x, 1, 16, alpha, 3, 1, None,
-                                'relu', regularizer, 0)
-        x = _inverted_res_block(x, 4, 24, alpha, 3, 2, None,
-                                'relu', regularizer, 1)
-        x = _inverted_res_block(x, 3, 24, alpha, 3, 1, None,
-                                'relu', regularizer, 2)
-        x = _inverted_res_block(x, 3, 40, alpha, kernel, 2, se_ratio,
-                                'relu', regularizer, 3)
-        x = _inverted_res_block(x, 3, 40, alpha, kernel, 1, se_ratio,
-                                'relu', regularizer, 4)
-        x = _inverted_res_block(x, 3, 40, alpha, kernel, 1, se_ratio,
-                                'relu', regularizer, 5)
-        x = _inverted_res_block(x, 6, 80, alpha, 3, 2, None,
-                                activation, regularizer, 6)
-        x = _inverted_res_block(x, 2.5, 80, alpha, 3, 1, None,
-                                activation, regularizer, 7)
-        x = _inverted_res_block(x, 2.3, 80, alpha, 3, 1, None,
-                                activation, regularizer, 8)
-        x = _inverted_res_block(x, 2.3, 80, alpha, 3, 1, None,
-                                activation, regularizer, 9)
-        x = _inverted_res_block(x, 6, 112, alpha, 3, 1, se_ratio,
-                                activation, regularizer, 10)
-        x = _inverted_res_block(x, 6, 112, alpha, 3, 1, se_ratio,
-                                activation, regularizer, 11)
-        x = _inverted_res_block(x, 6, 160, alpha, kernel, 2, se_ratio,
-                                activation, regularizer, 12)
-        x = _inverted_res_block(x, 6, 160, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 13)
-        x = _inverted_res_block(x, 6, 160, alpha, kernel, 1, se_ratio,
-                                activation, regularizer, 14)
+        def depth(d):
+            return _depth(d * alpha)
+        x = _inverted_res_block(x, 1, depth(16), 3, 1, None, relu, 0)
+        x = _inverted_res_block(x, 4, depth(24), 3, 2, None, relu, 1)
+        x = _inverted_res_block(x, 3, depth(24), 3, 1, None, relu, 2)
+        x = _inverted_res_block(x, 3, depth(40), kernel, 2, se_ratio, relu, 3)
+        x = _inverted_res_block(x, 3, depth(40), kernel, 1, se_ratio, relu, 4)
+        x = _inverted_res_block(x, 3, depth(40), kernel, 1, se_ratio, relu, 5)
+        x = _inverted_res_block(x, 6, depth(80), 3, 2, None, activation, 6)
+        x = _inverted_res_block(x, 2.5, depth(80), 3, 1, None, activation, 7)
+        x = _inverted_res_block(x, 2.3, depth(80), 3, 1, None, activation, 8)
+        x = _inverted_res_block(x, 2.3, depth(80), 3, 1, None, activation, 9)
+        x = _inverted_res_block(x, 6, depth(112), 3, 1, se_ratio, activation, 10)
+        x = _inverted_res_block(x, 6, depth(112), 3, 1, se_ratio, activation, 11)
+        x = _inverted_res_block(x, 6, depth(160), kernel, 2, se_ratio, activation, 12)
+        x = _inverted_res_block(x, 6, depth(160), kernel, 1, se_ratio, activation, 13)
+        x = _inverted_res_block(x, 6, depth(160), kernel, 1, se_ratio, activation, 14)
         return x
-
     return MobileNetV3(stack_fn,
                        1280,
                        input_shape,
@@ -541,7 +533,6 @@ def MobileNetV3Large(input_shape=None,
                        classes,
                        pooling,
                        dropout_rate,
-                       regularizer,
                        **kwargs)
 
 
