@@ -112,7 +112,10 @@ def _depth(v, divisor=8, min_value=None):
 
 def _se_block(inputs, filters, se_ratio, prefix):
     x = layers.GlobalAveragePooling2D(name=prefix + 'squeeze_excite/AvgPool')(inputs)
-    x = layers.Reshape((1, 1, filters))(x)
+    if backend.image_data_format() == 'channels_first':
+        x = layers.Reshape((filters, 1, 1))(x)
+    else:
+        x = layers.Reshape((1, 1, filters))(x)
     x = layers.Conv2D(_depth(filters * se_ratio),
                       kernel_size=1,
                       padding='same',
@@ -402,7 +405,10 @@ def MobileNetV3(stack_fn,
 
     if include_top:
         x = layers.GlobalAveragePooling2D()(x)
-        x = layers.Reshape((1, 1, last_conv_ch))(x)
+        if channel_axis == 1:
+            x = layers.Reshape((last_conv_ch, 1, 1))(x)
+        else:
+            x = layers.Reshape((1, 1, last_conv_ch))(x)
         x = layers.Conv2D(last_point_ch,
                           kernel_size=1,
                           padding='same',
