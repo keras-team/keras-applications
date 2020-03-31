@@ -472,8 +472,8 @@ def MobileNetV3Small(input_shape=None,
         def depth(d):
             return _depth(d * alpha)
         x = _inverted_res_block(x, 1, depth(16), 3, 2, se_ratio, relu, 0)
-        x = _inverted_res_block(x, 72./16, depth(24), 3, 2, None, relu, 1)
-        x = _inverted_res_block(x, 88./24, depth(24), 3, 1, None, relu, 2)
+        x = _inverted_res_block(x, 72. / 16, depth(24), 3, 2, None, relu, 1)
+        x = _inverted_res_block(x, 88. / 24, depth(24), 3, 1, None, relu, 2)
         x = _inverted_res_block(x, 4, depth(40), kernel, 2, se_ratio, activation, 3)
         x = _inverted_res_block(x, 6, depth(40), kernel, 1, se_ratio, activation, 4)
         x = _inverted_res_block(x, 6, depth(40), kernel, 1, se_ratio, activation, 5)
@@ -523,9 +523,12 @@ def MobileNetV3Large(input_shape=None,
         x = _inverted_res_block(x, 2.3, depth(80), 3, 1, None, activation, 9)
         x = _inverted_res_block(x, 6, depth(112), 3, 1, se_ratio, activation, 10)
         x = _inverted_res_block(x, 6, depth(112), 3, 1, se_ratio, activation, 11)
-        x = _inverted_res_block(x, 6, depth(160), kernel, 2, se_ratio, activation, 12)
-        x = _inverted_res_block(x, 6, depth(160), kernel, 1, se_ratio, activation, 13)
-        x = _inverted_res_block(x, 6, depth(160), kernel, 1, se_ratio, activation, 14)
+        x = _inverted_res_block(x, 6, depth(160), kernel, 2, se_ratio,
+                                activation, 12)
+        x = _inverted_res_block(x, 6, depth(160), kernel, 1, se_ratio,
+                                activation, 13)
+        x = _inverted_res_block(x, 6, depth(160), kernel, 1, se_ratio,
+                                activation, 14)
         return x
     return MobileNetV3(stack_fn,
                        1280,
