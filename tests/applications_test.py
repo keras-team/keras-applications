@@ -40,7 +40,8 @@ def keras_modules_injection(base_fun):
 for (name, module) in [('resnet', keras_applications.resnet),
                        ('resnet_v2', keras_applications.resnet_v2),
                        ('resnext', keras_applications.resnext),
-                       ('efficientnet', keras_applications.efficientnet)]:
+                       ('efficientnet', keras_applications.efficientnet),
+                       ('mobilenet_v3', keras_applications.mobilenet_v3)]:
     module.decode_predictions = keras_modules_injection(module.decode_predictions)
     module.preprocess_input = keras_modules_injection(module.preprocess_input)
     for app in dir(module):
@@ -58,7 +59,11 @@ RESNETV2_LIST = [keras_applications.resnet_v2.ResNet50V2,
 RESNEXT_LIST = [keras_applications.resnext.ResNeXt50,
                 keras_applications.resnext.ResNeXt101]
 MOBILENET_LIST = [(mobilenet.MobileNet, mobilenet, 1024),
-                  (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280)]
+                  (mobilenet_v2.MobileNetV2, mobilenet_v2, 1280),
+                  (keras_applications.mobilenet_v3.MobileNetV3Small,
+                   keras_applications.mobilenet_v3, 576),
+                  (keras_applications.mobilenet_v3.MobileNetV3Large,
+                   keras_applications.mobilenet_v3, 960)]
 DENSENET_LIST = [(densenet.DenseNet121, 1024),
                  (densenet.DenseNet169, 1664),
                  (densenet.DenseNet201, 1920)]
