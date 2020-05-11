@@ -2,8 +2,8 @@
 
 # Reference paper
 
-- [Aggregated Residual Transformations for Deep Neural Networks]
-  (https://arxiv.org/abs/1611.05431) (CVPR 2017)
+- [Identity Mappings in Deep Residual Networks]
+  (https://arxiv.org/abs/1603.05027) (ECCV 2016)
 
 # Reference implementations
 
