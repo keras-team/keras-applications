@@ -17,8 +17,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
-
 from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .resnet_common import ResNeXt50
