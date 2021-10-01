@@ -1,5 +1,10 @@
 # Keras Applications
 
+:warning: **This repository is deprecated**: Keras applications are still
+supported, but all application code now lives in the main keras repository,
+in the [keras/applications](https://github.com/keras-team/keras/blob/master/keras/applications)
+directory.
+
 [![Build Status](https://travis-ci.org/keras-team/keras-applications.svg?branch=master)](https://travis-ci.org/keras-team/keras-applications)
 
 Keras Applications is the `applications` module of
